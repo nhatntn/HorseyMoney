@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSocket } from "@/lib/socket";
 import { Horse } from "@/components/Horse";
+import { FallingPetals } from "@/components/FallingPetals";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const RACE_GOAL = 100;
@@ -88,33 +89,31 @@ function JoinModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm animate-scale-in">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-yellow-400/30 p-8 w-full max-w-sm animate-scale-in">
         <div className="text-center mb-6">
           <div className="w-16 h-12 mx-auto mb-3">
             <Horse color="#DC2626" state="idle" />
           </div>
-          <h2 className="text-2xl font-bold text-red-700">Join the Race</h2>
+          <h2 className="text-2xl font-bold text-red-700">Tham Gia Đua</h2>
           <p className="text-gray-500 text-sm mt-1">
-            Enter your info to join the horse race
+            Nhập thông tin để tham gia đua ngựa
           </p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Display Name */}
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your display name"
+            placeholder="Tên hiển thị của bạn"
             autoFocus
             maxLength={30}
             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-center text-lg"
           />
 
-          {/* Gender */}
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2 text-center">
-              Gender
+              Giới tính
             </label>
             <div className="grid grid-cols-3 gap-2">
               {[
@@ -128,7 +127,7 @@ function JoinModal({
                   onClick={() => setGender(opt.value)}
                   className={`py-2 px-3 rounded-xl border-2 text-sm font-medium transition-all ${gender === opt.value
                     ? "border-red-500 bg-red-50 text-red-700"
-                    : "border-gray-200 text-gray-500 hover:border-gray-300"
+                    : "border-gray-200 text-gray-500 hover:border-red-300"
                     }`}
                 >
                   <span className="text-base">{opt.icon}</span> {opt.label}
@@ -137,16 +136,15 @@ function JoinModal({
             </div>
           </div>
 
-          {/* Age */}
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1 text-center">
-              Age
+              Tuổi
             </label>
             <input
               type="number"
               value={age}
               onChange={(e) => setAge(e.target.value)}
-              placeholder="Your age"
+              placeholder="Tuổi của bạn"
               min={1}
               max={120}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-center text-lg"
@@ -159,9 +157,9 @@ function JoinModal({
           <button
             type="submit"
             disabled={loading || !name.trim()}
-            className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white font-semibold py-3 rounded-xl transition-all duration-200"
+            className="w-full bg-gradient-to-r from-red-700 to-red-600 hover:from-red-800 hover:to-red-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg shadow-red-900/30"
           >
-            {loading ? "Joining..." : "Join Race"}
+            {loading ? "Đang vào..." : "🏇 Vào Đua"}
           </button>
         </form>
       </div>
@@ -184,7 +182,7 @@ function CountdownOverlay({ count }: { count: number }) {
         ) : (
           <div>
             <div className="text-8xl font-black text-amber-400 drop-shadow-2xl">
-              GO!
+              PHI!
             </div>
             <div className="w-16 h-12 mx-auto mt-4">
               <Horse color="#F59E0B" state="running" />
@@ -232,7 +230,6 @@ function RaceTrack({
   goal: number;
   isRacing: boolean;
 }) {
-  // Sort: current user's horse first, then by progress descending
   const sorted = [...horses].sort((a, b) => {
     if (a.participantId === myId) return -1;
     if (b.participantId === myId) return 1;
@@ -252,7 +249,6 @@ function RaceTrack({
 
         return (
           <div key={horse.participantId}>
-            {/* Name row */}
             <div className="flex items-center justify-between text-sm mb-1 px-1">
               <span className={`font-semibold ${isMe ? "text-red-700" : "text-gray-700"}`}>
                 {isMe && "⭐ "}
@@ -269,22 +265,17 @@ function RaceTrack({
               </span>
             </div>
 
-            {/* Lane wrapper — track inside, horse on top */}
             <div className="relative">
-              {/* Track background (overflow-hidden for fill + finish line) */}
               <div
                 className={`relative h-12 rounded-xl overflow-hidden ${lane.bg} track-lane border ${isMe ? "border-red-300 ring-2 ring-red-200" : lane.border
                   }`}
               >
-                {/* Progress fill */}
                 <div
                   className={`absolute inset-y-0 left-0 ${lane.fill} opacity-25 transition-all duration-75 ease-linear`}
                   style={{ width: `${pct}%` }}
                 />
-                {/* Finish line */}
                 <div className="absolute right-0 inset-y-0 w-5 finish-line opacity-50" />
 
-                {/* Dust trail particles */}
                 {isRunning && pct > 4 && (
                   <>
                     <div
@@ -303,7 +294,6 @@ function RaceTrack({
                 )}
               </div>
 
-              {/* Horse + jockey SVG — outside overflow-hidden for full visibility */}
               <div
                 className="absolute z-10 pointer-events-none transition-all duration-75 ease-linear"
                 style={{
@@ -348,13 +338,11 @@ function TapArea({
   const handleTap = useCallback(() => {
     if (disabled || finished) return;
     onTap();
-    // Haptic feedback (Android)
     if (navigator.vibrate) navigator.vibrate(10);
     setFlash(true);
     setTimeout(() => setFlash(false), 80);
   }, [onTap, disabled, finished]);
 
-  // Use touchstart for faster response on mobile
   useEffect(() => {
     const el = tapRef.current;
     if (!el) return;
@@ -374,13 +362,13 @@ function TapArea({
         ? MEDALS[finishPosition - 1]
         : `#${finishPosition}`;
     return (
-      <div className="h-44 bg-gradient-to-b from-green-500 to-green-600 rounded-2xl flex flex-col items-center justify-center select-none">
+      <div className="h-44 bg-gradient-to-b from-green-500 to-green-600 rounded-2xl flex flex-col items-center justify-center select-none shadow-lg">
         <div className="text-5xl mb-2">{medal}</div>
         <div className="text-white text-xl font-bold">
-          You finished {medal}!
+          Bạn về đích {medal}!
         </div>
         <div className="text-white/70 text-sm mt-1">
-          Waiting for others...
+          Đang chờ người khác...
         </div>
       </div>
     );
@@ -390,9 +378,9 @@ function TapArea({
     <div
       ref={tapRef}
       onMouseDown={handleTap}
-      className={`h-44 rounded-2xl flex flex-col items-center justify-center select-none cursor-pointer transition-all duration-75 ${flash
-        ? "bg-gradient-to-b from-red-700 to-red-800 scale-[0.97]"
-        : "bg-gradient-to-b from-red-500 to-red-600"
+      className={`h-44 rounded-2xl flex flex-col items-center justify-center select-none cursor-pointer transition-all duration-75 shadow-lg ${flash
+        ? "bg-gradient-to-b from-amber-600 to-amber-700 scale-[0.97]"
+        : "bg-gradient-to-b from-amber-500 to-amber-600"
         }`}
       style={{
         touchAction: "none",
@@ -402,7 +390,7 @@ function TapArea({
     >
       <div className="text-5xl mb-1 pointer-events-none">👆</div>
       <div className="text-white text-2xl font-black pointer-events-none">
-        TAP TO RUN!
+        BẤM ĐỂ CHẠY!
       </div>
       <div className="text-white/70 text-sm mt-1 pointer-events-none">
         {Math.round((myProgress / goal) * 100)}%
@@ -422,9 +410,9 @@ function ResultsView({
   const sorted = [...envelopes].sort((a, b) => b.amount - a.amount);
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-amber-100 p-5 animate-fade-in">
+    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] border border-yellow-400/30 p-5 animate-fade-in">
       <h2 className="font-bold text-amber-800 mb-4 flex items-center gap-2 text-lg">
-        <span>🏆</span> Race Results
+        <span>🏆</span> Bảng Xếp Hạng
       </h2>
       <div className="space-y-2.5">
         {sorted.map((envelope, index) => {
@@ -446,7 +434,7 @@ function ResultsView({
                     {envelope.displayName}
                     {isMe && (
                       <span className="text-amber-500 font-normal ml-1">
-                        (you)
+                        (bạn)
                       </span>
                     )}
                   </span>
@@ -473,13 +461,11 @@ export default function RoomPage() {
   const code = (params.code as string)?.toUpperCase();
   const socketRef = useRef(false);
 
-  // Core state
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [raceState, setRaceState] = useState<RaceState | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [participantId, setParticipantId] = useState<string | null>(null);
 
-  // UI state
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
@@ -487,14 +473,12 @@ export default function RoomPage() {
   const [copied, setCopied] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
-  // Check localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(`tet_participant_${code}`);
     const creatorStored = localStorage.getItem(`creator_${code}`);
     if (stored) {
       setParticipantId(stored);
     } else if (creatorStored) {
-      // Host-only mode: creator doesn't race but can control the room
       setParticipantId(creatorStored);
       setInitialLoading(false);
     } else {
@@ -503,7 +487,6 @@ export default function RoomPage() {
     }
   }, [code]);
 
-  // Socket connection
   useEffect(() => {
     if (!participantId || socketRef.current) return;
     socketRef.current = true;
@@ -513,7 +496,6 @@ export default function RoomPage() {
 
     socket.emit("room:subscribe", { roomCode: code, participantId });
 
-    // Room events
     socket.on("room:state", (data: RoomState) => {
       setRoomState(data);
       setInitialLoading(false);
@@ -523,13 +505,12 @@ export default function RoomPage() {
       setRoomState(data);
     });
 
-    // Race events
     socket.on("race:countdown", (data: { count: number }) => {
       setCountdown(data.count);
     });
 
     socket.on("race:go", (data: RaceState) => {
-      setCountdown(0); // Show "GO!"
+      setCountdown(0);
       setRaceState(data);
       setTimeout(() => setCountdown(null), 700);
     });
@@ -560,7 +541,6 @@ export default function RoomPage() {
     };
   }, [participantId, code]);
 
-  // Fallback REST fetch if socket didn't deliver
   useEffect(() => {
     if (roomState || !participantId) return;
 
@@ -582,7 +562,6 @@ export default function RoomPage() {
     return () => clearTimeout(timeout);
   }, [roomState, participantId, code]);
 
-  // Join handler
   const handleJoin = useCallback(
     async (displayName: string, gender: string, age: string) => {
       setJoinLoading(true);
@@ -595,14 +574,14 @@ export default function RoomPage() {
         });
         const data = await res.json();
         if (!res.ok) {
-          setJoinError(data.error || "Failed to join room");
+          setJoinError(data.error || "Không thể vào phòng");
           return;
         }
         localStorage.setItem(`tet_participant_${code}`, data.participantId);
         setParticipantId(data.participantId);
         setShowJoinModal(false);
       } catch {
-        setJoinError("Network error. Is the server running?");
+        setJoinError("Lỗi mạng. Server đang chạy chưa?");
       } finally {
         setJoinLoading(false);
       }
@@ -610,28 +589,24 @@ export default function RoomPage() {
     [code]
   );
 
-  // Start race handler
   const handleStartRace = useCallback(() => {
     const socket = getSocket();
     const creatorId = localStorage.getItem(`creator_${code}`) || participantId;
     socket.emit("race:start", { roomCode: code, participantId: creatorId });
   }, [code, participantId]);
 
-  // Tap handler
   const handleTap = useCallback(() => {
     if (!raceState || raceState.status !== "racing") return;
     const socket = getSocket();
     socket.emit("race:tap", { roomCode: code, participantId });
   }, [raceState, code, participantId]);
 
-  // Copy room code
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Derived state
   const hasResults = roomState && roomState.envelopes.length > 0;
   const isRacing =
     raceState &&
@@ -669,18 +644,22 @@ export default function RoomPage() {
   if (initialLoading && !showJoinModal) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+        <FallingPetals />
+        <div className="text-center relative z-20">
           <div className="w-16 h-12 mx-auto animate-float mb-4">
-            <Horse color="#DC2626" state="idle" />
+            <Horse color="#FBBF24" state="idle" />
           </div>
-          <p className="text-gray-500">Loading room...</p>
+          <p className="text-yellow-300/80">Đang tải phòng...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-4 pb-8">
+    <div className="min-h-screen relative p-4 pb-8 overflow-hidden">
+      {/* Falling Petals */}
+      <FallingPetals />
+
       {/* Join Modal */}
       {showJoinModal && (
         <JoinModal onJoin={handleJoin} loading={joinLoading} error={joinError} />
@@ -689,39 +668,43 @@ export default function RoomPage() {
       {/* Countdown Overlay */}
       {countdown !== null && <CountdownOverlay count={countdown} />}
 
-      <div className="max-w-lg mx-auto">
+      {/* Back button — fixed top-left */}
+      <button
+        onClick={() => router.push("/")}
+        className="fixed top-4 left-4 z-30 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-yellow-300 hover:text-yellow-200 text-sm font-medium px-4 py-2 rounded-xl border border-yellow-400/30 transition-all duration-200 shadow-lg shadow-black/10"
+      >
+        ← Về Trang Chủ
+      </button>
+
+      <div className="max-w-lg mx-auto relative z-20">
         {/* Header */}
-        <div className="text-center mb-5 pt-3">
-          <button
-            onClick={() => router.push("/")}
-            className="text-gray-400 hover:text-gray-600 text-sm mb-2 inline-block"
-          >
-            ← Home
-          </button>
-          <h1 className="text-2xl font-bold text-red-700 flex items-center justify-center gap-2">
-            <span className="inline-block w-10 h-8"><Horse color="#DC2626" state="idle" /></span>
-            {roomState?.room.name || (<>Horsey Money<br /><span className="text-lg">Mã Đáo Phát Bao</span></>)}
-          </h1>
+        <div className="text-center mb-5 pt-12">
+          <div className="flex items-center justify-center gap-2">
+            <span className="inline-block w-10 h-8"><Horse color="#FBBF24" state="running" /></span>
+            <h1 className="text-2xl font-bold text-yellow-400 drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
+              {roomState?.room.name || (<>Horsey Money<br /><span className="text-lg text-yellow-300/80">Mã Đáo Phát Bao</span></>)}
+            </h1>
+          </div>
           <div className="mt-2 inline-flex items-center gap-2">
-            <span className="bg-red-100 text-red-700 font-mono text-sm font-bold px-3 py-1 rounded-lg tracking-widest">
+            <span className="bg-white/15 text-yellow-300 font-mono text-sm font-bold px-3 py-1 rounded-lg tracking-widest border border-yellow-400/30">
               {code}
             </span>
             <button
               onClick={handleCopy}
-              className="text-gray-400 hover:text-red-500 text-sm transition-colors"
+              className="text-red-200/70 hover:text-yellow-300 text-sm transition-colors"
             >
-              {copied ? "✓ Copied!" : "📋 Copy"}
+              {copied ? "✓ Đã copy!" : "📋 Copy"}
             </button>
           </div>
         </div>
 
         {/* Error Banner */}
         {error && (
-          <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-200 mb-4 text-center animate-fade-in">
+          <div className="bg-red-900/50 text-red-200 text-sm px-4 py-3 rounded-xl border border-red-400/30 mb-4 text-center animate-fade-in">
             {error}
             <button
               onClick={() => setError("")}
-              className="ml-2 text-red-400 hover:text-red-600"
+              className="ml-2 text-red-300 hover:text-white"
             >
               ✕
             </button>
@@ -734,10 +717,10 @@ export default function RoomPage() {
             {!raceState && !hasResults && (
               <div className="space-y-4">
                 {/* Participants */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-5">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] border border-yellow-400/30 p-5">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="font-semibold text-gray-800 flex items-center gap-1.5">
-                      <span className="inline-block w-8 h-6"><Horse color="#374151" state="idle" /></span> Riders
+                      <span className="inline-block w-8 h-6"><Horse color="#374151" state="idle" /></span> Người Chơi
                     </h2>
                     <span className="text-sm text-gray-500">
                       {roomState.participants.length}/
@@ -759,7 +742,7 @@ export default function RoomPage() {
                               {p.displayName}
                               {p.id === participantId && (
                                 <span className="text-gray-400 font-normal ml-1">
-                                  (you)
+                                  (bạn)
                                 </span>
                               )}
                             </span>
@@ -773,52 +756,51 @@ export default function RoomPage() {
                     })}
                     {roomState.participants.length === 0 && (
                       <p className="text-gray-400 text-sm text-center py-4">
-                        Waiting for riders to join...
+                        Đang chờ các người chơi tham gia...
                       </p>
                     )}
                   </div>
                 </div>
 
                 {/* Start Race Button */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-6 text-center">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] border border-yellow-400/30 p-6 text-center">
                   <div className="flex items-center justify-center gap-3 text-sm mb-2">
                     <span className="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg border border-amber-200 font-medium">
-                      🧧 {roomState.totalEnvelopes} envelopes
+                      🧧 {roomState.totalEnvelopes} bao lì xì
                     </span>
                     <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg border border-gray-200 font-medium">
-                      ⏱ {roomState.room.raceDuration}s race
+                      ⏱ {roomState.room.raceDuration}s
                     </span>
                   </div>
                   <p className="text-gray-400 text-xs mb-4">
-                    Tap rapidly to race your horse — 1st place gets the
-                    highest amount!
+                    Bấm liên tục để phi ngựa — Về nhất lấy bao lì xì lớn nhất!
                   </p>
                   {canStartRace && (
                     <button
                       onClick={handleStartRace}
-                      className="bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-700 hover:to-amber-600 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 hover:shadow-lg hover:shadow-red-200 active:scale-[0.97]"
+                      className="bg-gradient-to-r from-red-700 to-amber-500 hover:from-red-800 hover:to-amber-600 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 shadow-lg shadow-red-900/30 hover:shadow-xl active:scale-[0.97]"
                     >
-                      Start Race! 🏁
+                      Bắt Đầu Đua! 🏁
                     </button>
                   )}
                   {notEnoughPlayers && isCreator && (
                     <div className="text-amber-600 text-sm font-medium">
-                      Need at least 2 riders to start the race
+                      Cần ít nhất 2 người chơi để bắt đầu
                     </div>
                   )}
                   {!isCreator && roomState && !raceState && !hasResults && roomState.participants.length >= 2 && (
                     <div className="text-amber-600 text-sm font-medium animate-pulse">
-                      Waiting for host to start the race...
+                      Đang chờ host bắt đầu đua...
                     </div>
                   )}
                   {!isCreator && notEnoughPlayers && (
                     <div className="text-amber-600 text-sm font-medium">
-                      Waiting for more riders to join...
+                      Đang chờ thêm tay đua tham gia...
                     </div>
                   )}
                   {!participantId && !isCreator && (
                     <p className="text-gray-400 text-sm">
-                      Join the room to participate
+                      Vào phòng để tham gia
                     </p>
                   )}
                 </div>
@@ -830,11 +812,10 @@ export default function RoomPage() {
               (raceState.status === "racing" ||
                 raceState.status === "waiting") && (
                 <div className="space-y-4">
-                  {/* Race Track */}
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-4">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] border border-yellow-400/30 p-4">
                     <div className="flex items-center justify-between mb-3">
                       <h2 className="font-bold text-gray-800 flex items-center gap-2">
-                        <span>🏁</span> Race Track
+                        <span>🏁</span> Đường Đua
                       </h2>
                       <RaceTimer timeRemainingMs={raceState.timeRemainingMs} />
                     </div>
@@ -846,7 +827,6 @@ export default function RoomPage() {
                     />
                   </div>
 
-                  {/* Tap Area */}
                   {isInRace && (
                     <TapArea
                       onTap={handleTap}
@@ -859,13 +839,13 @@ export default function RoomPage() {
                   )}
 
                   {!isInRace && (
-                    <div className="bg-gray-100 rounded-2xl p-6 text-center">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center border border-yellow-400/20">
                       <div className="text-3xl mb-2">👀</div>
-                      <p className="text-gray-600 font-medium">
-                        {isCreator ? "You're hosting the race" : "You're watching the race"}
+                      <p className="text-yellow-200 font-medium">
+                        {isCreator ? "Bạn đang host cuộc đua" : "Bạn đang xem cuộc đua"}
                       </p>
-                      <p className="text-gray-400 text-sm">
-                        {isCreator ? "Sit back and watch the riders compete!" : "You joined after the race started"}
+                      <p className="text-red-200/60 text-sm">
+                        {isCreator ? "Ngồi lại và xem các tay đua thi đấu!" : "Bạn vào sau khi đua đã bắt đầu"}
                       </p>
                     </div>
                   )}
@@ -875,11 +855,10 @@ export default function RoomPage() {
             {/* ─── RACE FINISHED, CALCULATING ─── */}
             {isCalculating && (
               <div className="space-y-4">
-                {/* Final track */}
                 {raceState && (
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-4">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] border border-yellow-400/30 p-4">
                     <h2 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                      <span>🏁</span> Final Positions
+                      <span>🏁</span> Vị Trí Cuối Cùng
                     </h2>
                     <RaceTrack
                       horses={raceState.horses}
@@ -889,13 +868,13 @@ export default function RoomPage() {
                     />
                   </div>
                 )}
-                <div className="bg-amber-50 rounded-2xl border border-amber-200 p-6 text-center animate-fade-in">
+                <div className="bg-amber-500/20 backdrop-blur-sm rounded-2xl border border-amber-400/30 p-6 text-center animate-fade-in">
                   <div className="text-4xl animate-float mb-3">🧧</div>
-                  <p className="text-amber-800 font-semibold text-lg">
-                    Assigning envelopes...
+                  <p className="text-yellow-200 font-semibold text-lg">
+                    Đang chia lì xì...
                   </p>
-                  <p className="text-amber-600 text-sm mt-1">
-                    1st place gets the highest amount!
+                  <p className="text-yellow-300/60 text-sm mt-1">
+                    Về nhất nhận bao lớn nhất!
                   </p>
                 </div>
               </div>
@@ -904,11 +883,10 @@ export default function RoomPage() {
             {/* ─── RESULTS ─── */}
             {hasResults && (
               <div className="space-y-4">
-                {/* Final track (if race data still available) */}
                 {raceState && (
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-4">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] border border-yellow-400/30 p-4">
                     <h2 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                      <span>🏁</span> Final Positions
+                      <span>🏁</span> Vị Trí Cuối Cùng
                     </h2>
                     <RaceTrack
                       horses={raceState.horses}
@@ -919,19 +897,18 @@ export default function RoomPage() {
                   </div>
                 )}
 
-                {/* My result highlight */}
                 {participantId && (() => {
                   const myEnvelope = roomState.envelopes.find(
                     (e) => e.participantId === participantId
                   );
                   if (!myEnvelope) return null;
                   return (
-                    <div className="bg-gradient-to-b from-red-600 to-red-700 rounded-2xl shadow-lg p-6 text-center animate-scale-in">
+                    <div className="bg-gradient-to-b from-red-700 to-red-900 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-yellow-400/30 p-6 text-center animate-scale-in">
                       <div className="text-4xl mb-2">🧧</div>
                       <h3 className="text-amber-200 font-bold text-lg mb-1">
-                        Your Lì Xì
+                        Lì Xì Của Bạn
                       </h3>
-                      <div className="text-4xl font-black text-amber-300 mb-2">
+                      <div className="text-4xl font-black text-yellow-400 mb-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
                         {myEnvelope.amount.toLocaleString()}k ₫
                       </div>
                       <p className="text-white/80 italic text-sm">
@@ -941,7 +918,6 @@ export default function RoomPage() {
                   );
                 })()}
 
-                {/* Full leaderboard */}
                 <ResultsView
                   envelopes={roomState.envelopes}
                   myId={participantId}
@@ -955,17 +931,17 @@ export default function RoomPage() {
         {!roomState && !initialLoading && !showJoinModal && (
           <div className="text-center py-12">
             <div className="text-5xl mb-4">😕</div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">
-              Room not found
+            <h2 className="text-xl font-semibold text-yellow-300 mb-2">
+              Không tìm thấy phòng
             </h2>
-            <p className="text-gray-500 mb-4">
-              This room may not exist or has expired.
+            <p className="text-red-200/70 mb-4">
+              Phòng này có thể không tồn tại hoặc đã hết hạn.
             </p>
             <button
               onClick={() => router.push("/")}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-xl transition-colors"
+              className="bg-gradient-to-r from-red-700 to-red-600 hover:from-red-800 hover:to-red-700 text-white font-semibold py-2 px-6 rounded-xl transition-colors shadow-lg shadow-red-900/30"
             >
-              Go Home
+              Về Trang Chủ
             </button>
           </div>
         )}
