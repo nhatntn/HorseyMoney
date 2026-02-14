@@ -1,17 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 50%, #fef2f2 100%);
   min-height: 100vh;
 }
 
 .envelope-pattern {
-  background-image: radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 50% 80%, rgba(220, 38, 38, 0.03) 0%, transparent 50%);
+  background-color: #7F1D1D;
+  background-image:
+    radial-gradient(circle at 30% 20%, rgba(220, 38, 38, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(220, 38, 38, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.05) 0%, transparent 40%),
+    linear-gradient(160deg, #6B0F0F 0%, #8B1A1A 25%, #7F1D1D 50%, #5C0E0E 80%, #450A0A 100%);
 }
+
+/* ═══════════════════════════════════════════
+   Tết Theme — Decorations & Animations
+   ═══════════════════════════════════════════ */
+
+/* Falling petals — uses CSS custom properties for randomization */
+@keyframes petalDrift {
+  0% {
+    transform: translateY(-5vh) translateX(0) rotate(0deg) scale(var(--petal-scale, 1));
+    opacity: 0;
+  }
+  8% { opacity: var(--petal-opacity, 0.8); }
+  25% { transform: translateY(25vh) translateX(var(--drift-1, 20px)) rotate(var(--rot-1, 180deg)) scale(var(--petal-scale, 1)); }
+  50% { transform: translateY(52vh) translateX(var(--drift-2, -15px)) rotate(var(--rot-2, 360deg)) scale(var(--petal-scale, 1)); }
+  75% { transform: translateY(78vh) translateX(var(--drift-3, 25px)) rotate(var(--rot-3, 540deg)) scale(var(--petal-scale, 1)); }
+  92% { opacity: var(--petal-opacity, 0.8); }
+  100% {
+    transform: translateY(106vh) translateX(var(--drift-4, -10px)) rotate(var(--rot-4, 720deg)) scale(var(--petal-scale, 1));
+    opacity: 0;
+  }
+}
+
+.petal {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+  animation: petalDrift var(--petal-duration, 5s) linear infinite var(--petal-delay, 0s);
+}
+
+/* Lantern sway */
+@keyframes lanternSway {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+
+@keyframes lanternGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 200, 50, 0.5)); }
+  50% { filter: drop-shadow(0 0 14px rgba(255, 200, 50, 0.8)); }
+}
+
+.lantern {
+  animation: lanternSway 3s ease-in-out infinite, lanternGlow 2s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.lantern-delay { animation-delay: 0.8s; }
+
+/* Sparkle */
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
+.sparkle { animation: sparkle 2s ease-in-out infinite; }
+.sparkle-delay-1 { animation-delay: 0.5s; }
+.sparkle-delay-2 { animation-delay: 1s; }
+.sparkle-delay-3 { animation-delay: 1.5s; }
+.sparkle-delay-4 { animation-delay: 0.3s; }
+
+/* Title shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    #FBBF24 0%,
+    #FDE68A 25%,
+    #FFFFFF 50%,
+    #FDE68A 75%,
+    #FBBF24 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Bounce in */
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.3) translateY(40px); }
+  50% { opacity: 1; transform: scale(1.05) translateY(-5px); }
+  70% { transform: scale(0.95) translateY(2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.8s ease-out both;
+}
+.animate-bounce-in-delay-1 { animation: bounceIn 0.8s ease-out 0.15s both; }
+.animate-bounce-in-delay-2 { animation: bounceIn 0.8s ease-out 0.3s both; }
+.animate-bounce-in-delay-3 { animation: bounceIn 0.8s ease-out 0.45s both; }
 
 /* Track lane grass texture */
 .track-lane {

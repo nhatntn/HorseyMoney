@@ -700,7 +700,7 @@ export default function RoomPage() {
           </button>
           <h1 className="text-2xl font-bold text-red-700 flex items-center justify-center gap-2">
             <span className="inline-block w-10 h-8"><Horse color="#DC2626" state="idle" /></span>
-            {roomState?.room.name || "Horsey Money - Mã Đáo Để Phát Bao"}
+            {roomState?.room.name || (<>Horsey Money<br /><span className="text-lg">Mã Đáo Phát Bao</span></>)}
           </h1>
           <div className="mt-2 inline-flex items-center gap-2">
             <span className="bg-red-100 text-red-700 font-mono text-sm font-bold px-3 py-1 rounded-lg tracking-widest">

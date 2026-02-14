@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { FallingPetals } from "@/components/FallingPetals";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -31,17 +32,17 @@ export default function CreateRoomPage() {
     setError("");
 
     if (parsedAmounts.length === 0) {
-      setError("Please enter at least one valid amount");
+      setError("Vui lòng nhập ít nhất một mệnh giá hợp lệ");
       return;
     }
 
     if (!maxPeople || parseInt(maxPeople) < 1) {
-      setError("Max people must be at least 1");
+      setError("Số người tối đa phải ít nhất là 1");
       return;
     }
 
     if (creatorJoin && !creatorName.trim()) {
-      setError("Please enter your display name to join the race");
+      setError("Vui lòng nhập tên hiển thị để tham gia đua");
       return;
     }
 
@@ -59,7 +60,7 @@ export default function CreateRoomPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Failed to create room");
+        setError(data.error || "Tạo phòng thất bại");
         return;
       }
 
@@ -73,46 +74,51 @@ export default function CreateRoomPage() {
 
       router.push(`/room/${data.roomCode}`);
     } catch {
-      setError("Network error. Is the server running?");
+      setError("Lỗi mạng. Server đang chạy chưa?");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
+      {/* ═══ Falling Cherry Blossom Petals ═══ */}
+      <FallingPetals />
+
+      {/* Back button — fixed top-left */}
+      <button
+        onClick={() => router.push("/")}
+        className="fixed top-4 left-4 z-30 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-yellow-300 hover:text-yellow-200 text-sm font-medium px-4 py-2 rounded-xl border border-yellow-400/30 transition-all duration-200 shadow-lg shadow-black/10"
+      >
+        ← Về Trang Chủ
+      </button>
+
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">
-          <button
-            onClick={() => router.push("/")}
-            className="text-gray-400 hover:text-gray-600 text-sm mb-4 inline-block"
-          >
-            ← Back to Home
-          </button>
           <div className="text-5xl mb-3">🧧</div>
-          <h1 className="text-3xl font-bold text-red-700">Create Room</h1>
-          <p className="text-gray-500 mt-1">
-            Set up lucky envelopes for your group
+          <h1 className="text-3xl font-bold text-yellow-400 drop-shadow-[0_2px_6px_rgba(0,0,0,0.3)]">Tạo Phòng Đua</h1>
+          <p className="text-red-200/80 mt-1">
+            Chuẩn bị bao lì xì cho nhóm của bạn
           </p>
         </div>
 
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-red-100 p-6 space-y-5"
+          className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] border border-yellow-400/30 p-6 space-y-5"
         >
           {/* Room Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Room Name{" "}
-              <span className="text-gray-400 font-normal">(optional)</span>
+              Tên Phòng{" "}
+              <span className="text-gray-400 font-normal">(tuỳ chọn)</span>
             </label>
             <input
               type="text"
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
-              placeholder="e.g. Team Tennis Tết Party"
+              placeholder="VD: Đội Nhà Nghèo Nhưng Giàu Tình Cảm"
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
             />
           </div>
@@ -120,7 +126,7 @@ export default function CreateRoomPage() {
           {/* Max People */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Max Participants
+              Số Người Tối Đa
             </label>
             <input
               type="number"
@@ -135,9 +141,9 @@ export default function CreateRoomPage() {
           {/* Amounts */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Envelope Amounts{" "}
+              Mệnh Giá Lì Xì{" "}
               <span className="text-gray-400 font-normal">
-                (comma-separated, unit: thousand VND)
+                (cách nhau bởi dấu phẩy, đơn vị: nghìn VND)
               </span>
             </label>
             <textarea
@@ -158,8 +164,8 @@ export default function CreateRoomPage() {
                   </span>
                 ))}
                 <span className="inline-block bg-red-50 text-red-700 text-xs font-semibold px-2 py-1 rounded-lg border border-red-200">
-                  Total: {totalAmount.toLocaleString()}k VND •{" "}
-                  {parsedAmounts.length} envelopes
+                  Tổng: {totalAmount.toLocaleString()}k VND •{" "}
+                  {parsedAmounts.length} bao
                 </span>
               </div>
             )}
@@ -168,13 +174,13 @@ export default function CreateRoomPage() {
           {/* Race Duration */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Race Duration
+              Thời Gian Đua
             </label>
             <div className="grid grid-cols-4 gap-2">
               {[
-                { value: "15", label: "15s", desc: "Sprint" },
-                { value: "30", label: "30s", desc: "Normal" },
-                { value: "45", label: "45s", desc: "Long" },
+                { value: "15", label: "15s", desc: "Nhanh" },
+                { value: "30", label: "30s", desc: "Bình thường" },
+                { value: "45", label: "45s", desc: "Dài" },
                 { value: "60", label: "60s", desc: "Marathon" },
               ].map((option) => (
                 <button
@@ -183,8 +189,8 @@ export default function CreateRoomPage() {
                   onClick={() => setRaceDuration(option.value)}
                   className={`p-3 rounded-xl border-2 text-center transition-all ${
                     raceDuration === option.value
-                      ? "border-red-500 bg-red-50 text-red-700"
-                      : "border-gray-200 hover:border-gray-300 text-gray-600"
+                      ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                      : "border-gray-200 hover:border-red-300 text-gray-600"
                   }`}
                 >
                   <div className="text-lg font-bold">{option.label}</div>
@@ -195,44 +201,14 @@ export default function CreateRoomPage() {
               ))}
             </div>
             <p className="text-xs text-gray-400 mt-1.5">
-              Time limit for the race. Unfinished riders are ranked by progress.
+              Giới hạn thời gian đua. Ai chưa về đích sẽ xếp hạng theo tiến độ.
             </p>
-          </div>
-
-          {/* Wish Tone */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Wish Tone
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { value: "mix", label: "🎭 Mix", desc: "Both styles" },
-                { value: "funny", label: "😄 Funny", desc: "Humorous" },
-                { value: "formal", label: "🎋 Formal", desc: "Traditional" },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setWishTone(option.value)}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${
-                    wishTone === option.value
-                      ? "border-red-500 bg-red-50 text-red-700"
-                      : "border-gray-200 hover:border-gray-300 text-gray-600"
-                  }`}
-                >
-                  <div className="text-sm font-medium">{option.label}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">
-                    {option.desc}
-                  </div>
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Creator Join Option */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Join the Race?
+              Bạn Có Tham Gia Đua Không?
             </label>
             <div className="grid grid-cols-2 gap-2 mb-3">
               <button
@@ -240,22 +216,22 @@ export default function CreateRoomPage() {
                 onClick={() => setCreatorJoin(true)}
                 className={`p-3 rounded-xl border-2 text-center transition-all ${
                   creatorJoin
-                    ? "border-red-500 bg-red-50 text-red-700"
-                    : "border-gray-200 hover:border-gray-300 text-gray-600"
+                    ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                    : "border-gray-200 hover:border-red-300 text-gray-600"
                 }`}
               >
-                <div className="text-sm font-medium">Yes, I race too!</div>
+                <div className="text-sm font-medium">🏇 Có, tôi đua luôn!</div>
               </button>
               <button
                 type="button"
                 onClick={() => setCreatorJoin(false)}
                 className={`p-3 rounded-xl border-2 text-center transition-all ${
                   !creatorJoin
-                    ? "border-red-500 bg-red-50 text-red-700"
-                    : "border-gray-200 hover:border-gray-300 text-gray-600"
+                    ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                    : "border-gray-200 hover:border-red-300 text-gray-600"
                 }`}
               >
-                <div className="text-sm font-medium">No, just host</div>
+                <div className="text-sm font-medium">👀 Không, chỉ host</div>
               </button>
             </div>
 
@@ -266,7 +242,7 @@ export default function CreateRoomPage() {
                   type="text"
                   value={creatorName}
                   onChange={(e) => setCreatorName(e.target.value)}
-                  placeholder="Your display name"
+                  placeholder="Tên của bạn"
                   maxLength={30}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-center"
                 />
@@ -285,7 +261,7 @@ export default function CreateRoomPage() {
                       className={`py-2 px-2 rounded-xl border-2 text-xs font-medium transition-all ${
                         creatorGender === opt.value
                           ? "border-red-500 bg-white text-red-700"
-                          : "border-gray-200 text-gray-500 hover:border-gray-300"
+                          : "border-gray-200 text-gray-500 hover:border-red-300"
                       }`}
                     >
                       {opt.label}
@@ -298,7 +274,7 @@ export default function CreateRoomPage() {
                   type="number"
                   value={creatorAge}
                   onChange={(e) => setCreatorAge(e.target.value)}
-                  placeholder="Your age"
+                  placeholder="Tuổi của bạn"
                   min={1}
                   max={120}
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-center"
@@ -318,7 +294,7 @@ export default function CreateRoomPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-red-200 active:scale-[0.98]"
+            className="w-full bg-gradient-to-r from-red-700 to-red-600 hover:from-red-800 hover:to-red-700 disabled:from-gray-400 disabled:to-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-red-900/30 hover:shadow-xl hover:shadow-red-900/40 active:scale-[0.98]"
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">
@@ -341,10 +317,10 @@ export default function CreateRoomPage() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   />
                 </svg>
-                Creating...
+                Đang tạo...
               </span>
             ) : (
-              "Create Room 🧧"
+              "Tạo Phòng 🧧"
             )}
           </button>
         </form>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Horsey Money - Mã Đáo Để Phát Bao",
+  title: "Horsey Money | Mã Đáo Phát Bao",
   description: "Race your horse to win lucky Tet envelopes! Tap to run, finish first for the biggest prize.",
 };
 

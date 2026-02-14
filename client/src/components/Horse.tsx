@@ -181,28 +181,28 @@ export function Horse({ color, state = "idle", className = "" }: HorseProps) {
 
         {/* ══════════ Saddle ══════════ */}
         <path
-          d="M 28 44 C 30 38 48 38 50 44 L 50 48 C 48 52 30 52 28 48 Z"
+          d="M 28 40 C 30 34 48 34 50 40 L 50 44 C 48 48 30 48 28 44 Z"
           fill="#4B5563"
         />
-        <ellipse cx="39" cy="42" rx="9.5" ry="3" fill="#374151" />
+        <ellipse cx="39" cy="38" rx="9.5" ry="3" fill="#374151" />
         {/* Stirrup strap */}
-        <path d="M 30 48 L 29 52 L 31 53 L 32 49" fill="#374151" />
+        <path d="M 30 44 L 29 48 L 31 49 L 32 45" fill="#374151" />
 
         {/* ══════════ Jockey ══════════ */}
 
         {/* Body / shirt */}
-        <rect x="34" y="27" width="11" height="13" rx="3.5" fill={shirt} />
+        <rect x="34" y="23" width="11" height="13" rx="3.5" fill={shirt} />
 
         {/* Arms reaching forward */}
         <path
-          d="M 45 29 C 53 25 62 25 70 29"
+          d="M 45 25 C 53 21 62 21 70 25"
           stroke={shirt}
           strokeWidth="4"
           strokeLinecap="round"
           fill="none"
         />
         <path
-          d="M 45 29 C 53 25 62 25 70 29"
+          d="M 45 25 C 53 21 62 21 70 25"
           stroke="white"
           strokeWidth="1.5"
           strokeLinecap="round"
@@ -211,11 +211,11 @@ export function Horse({ color, state = "idle", className = "" }: HorseProps) {
         />
 
         {/* Hands */}
-        <circle cx="70" cy="29" r="2.2" fill={skin} />
+        <circle cx="70" cy="25" r="2.2" fill={skin} />
 
         {/* Reins */}
         <path
-          d="M 70 29 C 76 32 82 36 84 38"
+          d="M 70 25 C 76 28 82 34 84 38"
           stroke="#EAB308"
           strokeWidth="1"
           fill="none"
@@ -223,7 +223,7 @@ export function Horse({ color, state = "idle", className = "" }: HorseProps) {
 
         {/* Leg (side view — < arrow shape, knee bent forward) */}
         <path
-          d="M 38 38 L 44 48 L 38 58"
+          d="M 38 34 L 44 44 L 38 54"
           stroke={pants}
           strokeWidth="5"
           strokeLinecap="round"
@@ -232,18 +232,18 @@ export function Horse({ color, state = "idle", className = "" }: HorseProps) {
         />
 
         {/* Boot */}
-        <rect x="35" y="56" width="6.5" height="3.5" rx="1.5" fill={boot} />
+        <rect x="35" y="52" width="6.5" height="3.5" rx="1.5" fill={boot} />
 
         {/* Head / face */}
-        <circle cx="39.5" cy="18" r="9.5" fill={skin} />
+        <circle cx="39.5" cy="14" r="9.5" fill={skin} />
 
         {/* Cheek blush */}
-        <circle cx="33.5" cy="20.5" r="2.2" fill="#F9A8A8" opacity="0.35" />
-        <circle cx="45.5" cy="20.5" r="2.2" fill="#F9A8A8" opacity="0.35" />
+        <circle cx="33.5" cy="16.5" r="2.2" fill="#F9A8A8" opacity="0.35" />
+        <circle cx="45.5" cy="16.5" r="2.2" fill="#F9A8A8" opacity="0.35" />
 
         {/* Smile */}
         <path
-          d="M 36 22 C 37.5 24.5 41.5 24.5 43 22"
+          d="M 36 18 C 37.5 20.5 41.5 20.5 43 18"
           stroke="#B37A3A"
           strokeWidth="0.9"
           fill="none"
@@ -251,28 +251,28 @@ export function Horse({ color, state = "idle", className = "" }: HorseProps) {
         />
 
         {/* Eyes */}
-        <circle cx="35.5" cy="17.5" r="1.6" fill="#2D1B0E" />
-        <circle cx="43.5" cy="17.5" r="1.6" fill="#2D1B0E" />
-        <circle cx="36" cy="17" r="0.5" fill="white" />
-        <circle cx="44" cy="17" r="0.5" fill="white" />
+        <circle cx="35.5" cy="13.5" r="1.6" fill="#2D1B0E" />
+        <circle cx="43.5" cy="13.5" r="1.6" fill="#2D1B0E" />
+        <circle cx="36" cy="13" r="0.5" fill="white" />
+        <circle cx="44" cy="13" r="0.5" fill="white" />
 
         {/* Helmet (taller) */}
         <path
-          d="M 29.5 14 C 29 5 50 5 49.5 14 L 49.5 17.5 C 47.5 18.5 31.5 18.5 29.5 17.5 Z"
+          d="M 29.5 10 C 29 1 50 1 49.5 10 L 49.5 13.5 C 47.5 14.5 31.5 14.5 29.5 13.5 Z"
           fill={helmet}
         />
-        <rect x="29" y="16.5" width="21" height="3" rx="1" fill="#52525B" />
+        <rect x="29" y="12.5" width="21" height="3" rx="1" fill="#52525B" />
 
         {/* Hair peeking below helmet (short) */}
         <path
-          d="M 30 19 C 29 22 29 24 30 26"
+          d="M 30 15 C 29 18 29 20 30 22"
           stroke={hair}
           strokeWidth="2.8"
           strokeLinecap="round"
           fill="none"
         />
         <path
-          d="M 31 19.5 C 30 21.5 30 23 31 25"
+          d="M 31 15.5 C 30 17.5 30 19 31 21"
           stroke="#EAB308"
           strokeWidth="2"
           strokeLinecap="round"
