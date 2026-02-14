@@ -9,37 +9,23 @@ import { setupSocketHandlers } from "./socket/handler";
 const app = express();
 const httpServer = createServer(app);
 
-// Support multiple CORS origins: comma-separated CLIENT_URL or wildcard in dev
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
-const allowedOrigins = CLIENT_URL.split(",").map((s) => s.trim());
 
-const corsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, health checks)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    callback(new Error(`CORS: origin ${origin} not allowed`));
+const io = new Server(httpServer, {
+  cors: {
+    origin: CLIENT_URL,
+    methods: ["GET", "POST"],
   },
-  methods: ["GET", "POST"],
-};
-
-const io = new Server(httpServer, { cors: corsOptions });
+});
 
 const prisma = new PrismaClient();
 
-app.use(cors(corsOptions));
+app.use(cors({ origin: CLIENT_URL }));
 app.use(express.json());
 
 // Health check
-app.get("/health", async (_req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    res.json({ status: "ok", db: "connected" });
-  } catch {
-    res.status(503).json({ status: "error", db: "disconnected" });
-  }
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
 });
 
 // API routes
@@ -51,5 +37,5 @@ setupSocketHandlers(io, prisma);
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
   console.log(`🧧 Tet Envelope server running on port ${PORT}`);
-  console.log(`   Allowed origins: ${allowedOrigins.join(", ")}`);
+  console.log(`   Accepting clients from ${CLIENT_URL}`);
 });
