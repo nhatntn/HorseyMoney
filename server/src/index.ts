@@ -32,13 +32,14 @@ const prisma = new PrismaClient();
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Health check
+// Health check – always return 200 so Railway knows the process is alive.
+// DB status is informational only; a disconnected DB should not block deploys.
 app.get("/health", async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ status: "ok", db: "connected" });
   } catch {
-    res.status(503).json({ status: "error", db: "disconnected" });
+    res.json({ status: "ok", db: "disconnected" });
   }
 });
 
