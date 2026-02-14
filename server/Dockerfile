@@ -25,4 +25,4 @@ EXPOSE 3001
 
 # Run prisma db push with a timeout (30s max), then always start the server.
 # Using ; instead of && so the server starts even if db push fails.
-CMD ["sh", "-c", "timeout 30 npx prisma db push --skip-generate; node dist/index.js"]
+CMD ["sh", "-c", "timeout 30 npx prisma db push --skip-generate --accept-data-loss; node dist/index.js"]

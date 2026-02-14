@@ -99,7 +99,7 @@ Your app will be at `http://your-server-ip:3000`.
 4. Add a new service from your GitHub repo → set **Root Directory** = `server`
    - Add env vars: `DATABASE_URL` (copy from Railway PostgreSQL), `PORT=3001`, `CLIENT_URL=https://your-client.vercel.app`
    - Build command: `npm run build`
-   - Start command: `npx prisma db push --skip-generate && npm start`
+   - Start command: `npx prisma db push --skip-generate --accept-data-loss && npm start`
 5. Deploy **client** on Vercel (see below)
 
 ### Option 3: Vercel (client) + Railway/Render (server)
@@ -116,7 +116,7 @@ Your app will be at `http://your-server-ip:3000`.
 1. Create a new Web Service from `server/` folder
 2. Add a PostgreSQL database
 3. Set env vars: `DATABASE_URL`, `PORT=3001`, `CLIENT_URL=https://your-app.vercel.app`
-4. Build: `npm run build` | Start: `npx prisma db push --skip-generate && npm start`
+4. Build: `npm run build` | Start: `npx prisma db push --skip-generate --accept-data-loss && npm start`
 
 ### Environment Variables
 
