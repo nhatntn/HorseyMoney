@@ -1,0 +1,21 @@
+version: "3.8"
+
+# Local PostgreSQL for development
+# Usage: docker compose -f docker-compose.dev.yml up -d
+# Then set DATABASE_URL=postgresql://horsemoney:horsemoney@localhost:5432/horsemoney in server/.env
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: horsemoney
+      POSTGRES_PASSWORD: horsemoney
+      POSTGRES_DB: horsemoney
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata_dev:

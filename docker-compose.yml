@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: horsemoney
+      POSTGRES_PASSWORD: horsemoney_secret
+      POSTGRES_DB: horsemoney
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  server:
+    build:
+      context: ./server
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://horsemoney:horsemoney_secret@db:5432/horsemoney
+      PORT: "3001"
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
+    ports:
+      - "3001:3001"
+
+  client:
+    build:
+      context: ./client
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://localhost:3001}
+    restart: always
+    depends_on:
+      - server
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

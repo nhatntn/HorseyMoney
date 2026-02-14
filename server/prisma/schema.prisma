@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Room {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  name         String?
+  maxPeople    Int
+  wishTone     String   @default("mix")
+  raceDuration Int      @default(30)
+  creatorId    String?
+  createdAt    DateTime @default(now())
+
+  participants Participant[]
+  amountPool   AmountPool[]
+  envelopes    Envelope[]
+}
+
+model Participant {
+  id          String    @id @default(uuid())
+  roomId      String
+  displayName String
+  gender      String    @default("other")
+  age         Int?
+  openedAt    DateTime?
+  createdAt   DateTime  @default(now())
+
+  room       Room         @relation(fields: [roomId], references: [id])
+  amountPool AmountPool[]
+  envelope   Envelope?
+}
+
+model AmountPool {
+  id                   String    @id @default(uuid())
+  roomId               String
+  amount               Int
+  takenByParticipantId String?
+  takenAt              DateTime?
+
+  room    Room         @relation(fields: [roomId], references: [id])
+  takenBy Participant? @relation(fields: [takenByParticipantId], references: [id])
+}
+
+model Wish {
+  id     String  @id @default(uuid())
+  tone   String
+  text   String
+  active Boolean @default(true)
+}
+
+model Envelope {
+  id            String   @id @default(uuid())
+  roomId        String
+  participantId String   @unique
+  amount        Int
+  wishText      String
+  createdAt     DateTime @default(now())
+
+  room        Room        @relation(fields: [roomId], references: [id])
+  participant Participant @relation(fields: [participantId], references: [id])
+}
