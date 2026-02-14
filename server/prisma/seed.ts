@@ -7,17 +7,10 @@ async function main() {
   // Clear existing wishes
   await prisma.wish.deleteMany();
 
-  // Seed formal wishes
-  for (const text of wishes.formal) {
+  // Seed all wishes
+  for (const text of wishes) {
     await prisma.wish.create({
-      data: { tone: "formal", text, active: true },
-    });
-  }
-
-  // Seed funny wishes
-  for (const text of wishes.funny) {
-    await prisma.wish.create({
-      data: { tone: "funny", text, active: true },
+      data: { text, active: true },
     });
   }
 

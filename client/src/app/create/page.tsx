@@ -11,7 +11,6 @@ export default function CreateRoomPage() {
   const [roomName, setRoomName] = useState("");
   const [maxPeople, setMaxPeople] = useState("10");
   const [amountsCsv, setAmountsCsv] = useState("50,50,100,100,200,200,500");
-  const [wishTone, setWishTone] = useState("mix");
   const [raceDuration, setRaceDuration] = useState("30");
   const [creatorJoin, setCreatorJoin] = useState(true);
   const [creatorName, setCreatorName] = useState("");
@@ -52,7 +51,7 @@ export default function CreateRoomPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          roomName, maxPeople, amountsCsv, wishTone, raceDuration,
+          roomName, maxPeople, amountsCsv, raceDuration,
           creatorJoin, creatorName: creatorName.trim(), creatorGender, creatorAge: creatorAge || undefined,
         }),
       });

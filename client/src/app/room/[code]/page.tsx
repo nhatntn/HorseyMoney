@@ -16,7 +16,6 @@ interface RoomState {
     code: string;
     name: string | null;
     maxPeople: number;
-    wishTone: string;
     raceDuration: number;
     creatorId: string | null;
   };

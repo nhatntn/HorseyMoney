@@ -6,7 +6,6 @@ export interface RoomState {
     code: string;
     name: string | null;
     maxPeople: number;
-    wishTone: string;
     raceDuration: number;
     creatorId: string | null;
   };
@@ -69,7 +68,6 @@ export async function getRoomState(
       code: room.code,
       name: room.name,
       maxPeople: room.maxPeople,
-      wishTone: room.wishTone,
       raceDuration: room.raceDuration,
       creatorId: room.creatorId,
     },

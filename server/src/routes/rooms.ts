@@ -13,13 +13,17 @@ function generateRoomCode(): string {
   return code;
 }
 
+function normalizeRoomCode(code: string): string {
+  return (code || "").trim().toUpperCase();
+}
+
 export function roomRoutes(prisma: PrismaClient, io: Server): Router {
   const router = Router();
 
   // Create Room
   router.post("/rooms", async (req, res) => {
     try {
-      const { roomName, maxPeople, amountsCsv, wishTone, raceDuration, creatorJoin, creatorName, creatorGender, creatorAge } = req.body;
+      const { roomName, maxPeople, amountsCsv, raceDuration, creatorJoin, creatorName, creatorGender, creatorAge } = req.body;
 
       if (!maxPeople || !amountsCsv) {
         return res.status(400).json({ error: "maxPeople and amountsCsv are required" });
@@ -50,7 +54,6 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
           code,
           name: roomName || null,
           maxPeople: parseInt(maxPeople, 10),
-          wishTone: wishTone || "mix",
           raceDuration: Math.max(10, Math.min(120, parseInt(raceDuration, 10) || 30)),
           amountPool: {
             create: amounts.map((amount: number) => ({
@@ -97,7 +100,7 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
   // Join Room
   router.post("/rooms/:code/join", async (req, res) => {
     try {
-      const { code } = req.params;
+      const code = normalizeRoomCode(req.params.code);
       const { displayName, gender, age } = req.body;
 
       if (!displayName || !displayName.trim()) {
@@ -144,7 +147,7 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
   // Open Envelope
   router.post("/rooms/:code/open", async (req, res) => {
     try {
-      const { code } = req.params;
+      const code = normalizeRoomCode(req.params.code);
       const { participantId } = req.body;
 
       if (!participantId) {
@@ -187,11 +190,8 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
           },
         });
 
-        // 5. Get random wish based on room tone
-        const wishTone = room.wishTone;
-        const wishFilter =
-          wishTone === "mix" ? { active: true } : { tone: wishTone, active: true };
-        const wishes = await tx.wish.findMany({ where: wishFilter });
+        // 5. Get random wish
+        const wishes = await tx.wish.findMany({ where: { active: true } });
         const randomWish =
           wishes.length > 0
             ? wishes[Math.floor(Math.random() * wishes.length)]
@@ -233,7 +233,7 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
   // Get Room State (fallback)
   router.get("/rooms/:code", async (req, res) => {
     try {
-      const { code } = req.params;
+      const code = normalizeRoomCode(req.params.code);
       const roomState = await getRoomState(prisma, code);
 
       if (!roomState) {

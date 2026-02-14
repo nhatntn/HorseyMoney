@@ -6,6 +6,10 @@ import { raceManager } from "../lib/raceManager";
 
 const BROADCAST_INTERVAL_MS = 80; // ~12 fps
 
+function normalizeRoomCode(code: string): string {
+  return (code || "").trim().toUpperCase();
+}
+
 // Track active intervals and timeouts for cleanup
 const activeIntervals = new Map<string, NodeJS.Timeout>();
 const activeTimeouts = new Map<string, NodeJS.Timeout[]>();
@@ -40,13 +44,8 @@ async function assignAmountsByFinishOrder(
         orderBy: { amount: "desc" },
       });
 
-      // Get wishes based on room tone
-      const wishTone = room.wishTone;
-      const wishFilter =
-        wishTone === "mix"
-          ? { active: true }
-          : { tone: wishTone, active: true };
-      const wishes = await tx.wish.findMany({ where: wishFilter });
+      // Get all active wishes
+      const wishes = await tx.wish.findMany({ where: { active: true } });
 
       // Assign in finish order: 1st gets highest, 2nd gets second highest, etc.
       for (let i = 0; i < finishOrder.length && i < available.length; i++) {
@@ -99,7 +98,8 @@ export function setupSocketHandlers(io: Server, prisma: PrismaClient) {
       "room:subscribe",
       async (data: { roomCode: string; participantId: string }) => {
         try {
-          const { roomCode, participantId } = data;
+          const roomCode = normalizeRoomCode(data.roomCode || "");
+          const participantId = data.participantId;
 
           if (!roomCode) {
             socket.emit("room:error", { message: "Room code is required" });
@@ -159,9 +159,10 @@ export function setupSocketHandlers(io: Server, prisma: PrismaClient) {
 
     // ─── Start Race ───────────────────────────────────────
     socket.on("race:start", async (data: { roomCode: string; participantId?: string }) => {
-      try {
-        const { roomCode, participantId } = data;
-        if (!roomCode) return;
+        try {
+          const roomCode = normalizeRoomCode(data.roomCode || "");
+          const participantId = data.participantId;
+          if (!roomCode) return;
 
         // Check if race already exists
         if (raceManager.hasRace(roomCode)) {
@@ -306,9 +307,10 @@ export function setupSocketHandlers(io: Server, prisma: PrismaClient) {
     socket.on(
       "race:tap",
       async (data: { roomCode: string; participantId: string }) => {
-        try {
-          const { roomCode, participantId } = data;
-          if (!roomCode || !participantId) return;
+          try {
+            const roomCode = normalizeRoomCode(data.roomCode || "");
+            const participantId = data.participantId;
+            if (!roomCode || !participantId) return;
 
           const progressed = raceManager.handleTap(roomCode, participantId);
           if (!progressed) return;
