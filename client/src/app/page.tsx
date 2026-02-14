@@ -27,7 +27,7 @@ export default function HomePage() {
           <div className="w-24 h-16 mx-auto mb-4">
             <Horse color="#DC2626" state="running" />
           </div>
-          <h1 className="text-4xl font-bold text-red-700 mb-2">Horse Race Lì Xì</h1>
+          <h1 className="text-4xl font-bold text-red-700 mb-2">Horsey Money - Mã Đáo Để Phát Bao</h1>
           <p className="text-amber-700 text-lg">
             Race your horse to win lucky envelopes!
           </p>

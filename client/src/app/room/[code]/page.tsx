@@ -127,8 +127,8 @@ function JoinModal({
                   type="button"
                   onClick={() => setGender(opt.value)}
                   className={`py-2 px-3 rounded-xl border-2 text-sm font-medium transition-all ${gender === opt.value
-                      ? "border-red-500 bg-red-50 text-red-700"
-                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                    ? "border-red-500 bg-red-50 text-red-700"
+                    : "border-gray-200 text-gray-500 hover:border-gray-300"
                     }`}
                 >
                   <span className="text-base">{opt.icon}</span> {opt.label}
@@ -209,10 +209,10 @@ function RaceTimer({ timeRemainingMs }: { timeRemainingMs: number | null }) {
   return (
     <div
       className={`font-mono text-sm font-bold px-3 py-1 rounded-lg transition-colors ${isCritical
-          ? "bg-red-100 text-red-700 animate-pulse"
-          : isUrgent
-            ? "bg-amber-100 text-amber-700"
-            : "bg-gray-100 text-gray-600"
+        ? "bg-red-100 text-red-700 animate-pulse"
+        : isUrgent
+          ? "bg-amber-100 text-amber-700"
+          : "bg-gray-100 text-gray-600"
         }`}
     >
       ⏱ {minutes > 0 ? `${minutes}:` : ""}{seconds.toString().padStart(minutes > 0 ? 2 : 1, "0")}s
@@ -391,8 +391,8 @@ function TapArea({
       ref={tapRef}
       onMouseDown={handleTap}
       className={`h-44 rounded-2xl flex flex-col items-center justify-center select-none cursor-pointer transition-all duration-75 ${flash
-          ? "bg-gradient-to-b from-red-700 to-red-800 scale-[0.97]"
-          : "bg-gradient-to-b from-red-500 to-red-600"
+        ? "bg-gradient-to-b from-red-700 to-red-800 scale-[0.97]"
+        : "bg-gradient-to-b from-red-500 to-red-600"
         }`}
       style={{
         touchAction: "none",
@@ -435,8 +435,8 @@ function ResultsView({
             <div
               key={envelope.participantId}
               className={`rounded-xl p-3.5 text-sm ${isMe
-                  ? "bg-amber-50 border-2 border-amber-300 shadow-sm"
-                  : "bg-gray-50 border border-gray-100"
+                ? "bg-amber-50 border-2 border-amber-300 shadow-sm"
+                : "bg-gray-50 border border-gray-100"
                 }`}
             >
               <div className="flex items-center justify-between">
@@ -700,7 +700,7 @@ export default function RoomPage() {
           </button>
           <h1 className="text-2xl font-bold text-red-700 flex items-center justify-center gap-2">
             <span className="inline-block w-10 h-8"><Horse color="#DC2626" state="idle" /></span>
-            {roomState?.room.name || "Horsey Money - Mã Đáo Phát Bao"}
+            {roomState?.room.name || "Horsey Money - Mã Đáo Để Phát Bao"}
           </h1>
           <div className="mt-2 inline-flex items-center gap-2">
             <span className="bg-red-100 text-red-700 font-mono text-sm font-bold px-3 py-1 rounded-lg tracking-widest">
