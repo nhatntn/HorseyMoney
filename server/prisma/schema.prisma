@@ -47,9 +47,10 @@ model AmountPool {
 }
 
 model Wish {
-  id     String  @id @default(uuid())
-  text   String
-  active Boolean @default(true)
+  id       String  @id @default(uuid())
+  text     String
+  ageGroup String  @default("all") // "child" | "teen" | "adult" | "elder" | "all"
+  active   Boolean @default(true)
 }
 
 model Envelope {

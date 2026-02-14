@@ -1,17 +1,17 @@
 import { PrismaClient } from "@prisma/client";
-import { wishes } from "../src/data/wishes";
+import { wishesByAge } from "../src/data/wishes";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Clear existing wishes
   await prisma.wish.deleteMany();
 
-  // Seed all wishes
-  for (const text of wishes) {
-    await prisma.wish.create({
-      data: { text, active: true },
-    });
+  for (const [ageGroup, texts] of Object.entries(wishesByAge)) {
+    for (const text of texts) {
+      await prisma.wish.create({
+        data: { text, ageGroup, active: true },
+      });
+    }
   }
 
   const count = await prisma.wish.count();

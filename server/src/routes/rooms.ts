@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
 import { getRoomState } from "../lib/roomState";
+import { getAgeGroup } from "../data/wishes";
 
 function generateRoomCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -190,8 +191,14 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
           },
         });
 
-        // 5. Get random wish
-        const wishes = await tx.wish.findMany({ where: { active: true } });
+        // 5. Get random wish by participant age
+        const ageGroup = getAgeGroup(participant.age ?? null);
+        const wishes = await tx.wish.findMany({
+          where: {
+            active: true,
+            OR: [{ ageGroup }, { ageGroup: "all" }],
+          },
+        });
         const randomWish =
           wishes.length > 0
             ? wishes[Math.floor(Math.random() * wishes.length)]

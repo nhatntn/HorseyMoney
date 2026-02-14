@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { getRoomState } from "../lib/roomState";
 import { raceManager } from "../lib/raceManager";
+import { getAgeGroup } from "../data/wishes";
 
 const BROADCAST_INTERVAL_MS = 80; // ~12 fps
 
@@ -44,13 +45,22 @@ async function assignAmountsByFinishOrder(
         orderBy: { amount: "desc" },
       });
 
-      // Get all active wishes
-      const wishes = await tx.wish.findMany({ where: { active: true } });
-
       // Assign in finish order: 1st gets highest, 2nd gets second highest, etc.
       for (let i = 0; i < finishOrder.length && i < available.length; i++) {
         const participantId = finishOrder[i];
         const amountRecord = available[i];
+
+        const participant = await tx.participant.findUnique({
+          where: { id: participantId },
+          select: { age: true },
+        });
+        const ageGroup = getAgeGroup(participant?.age ?? null);
+        const wishes = await tx.wish.findMany({
+          where: {
+            active: true,
+            OR: [{ ageGroup }, { ageGroup: "all" }],
+          },
+        });
         const randomWish =
           wishes.length > 0
             ? wishes[Math.floor(Math.random() * wishes.length)]
