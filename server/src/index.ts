@@ -35,7 +35,7 @@ app.use("/api", roomRoutes(prisma, io));
 setupSocketHandlers(io, prisma);
 
 const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => {
-  console.log(`🧧 Tet Envelope server running on port ${PORT}`);
+httpServer.listen(Number(PORT), "0.0.0.0", () => {
+  console.log(`🧧 Tet Envelope server running on 0.0.0.0:${PORT}`);
   console.log(`   Accepting clients from ${CLIENT_URL}`);
 });
