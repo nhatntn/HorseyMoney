@@ -945,7 +945,7 @@ export default function RoomPage() {
       <button
         type="button"
         onClick={toggleSound}
-        className="fixed top-4 right-4 z-30 w-11 h-11 flex items-center justify-center rounded-xl border border-yellow-400/30 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-yellow-300 hover:text-yellow-200 transition-all duration-200 shadow-lg shadow-black/10"
+        className="fixed bottom-6 right-6 z-30 w-11 h-11 flex items-center justify-center rounded-xl border border-yellow-400/30 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-yellow-300 hover:text-yellow-200 transition-all duration-200 shadow-lg shadow-black/10"
         title={soundOn ? "Tắt âm thanh" : "Bật âm thanh"}
         aria-label={soundOn ? "Tắt âm thanh" : "Bật âm thanh"}
       >

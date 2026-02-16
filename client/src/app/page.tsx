@@ -93,6 +93,7 @@ export default function HomePage() {
   const [soundOn, setSoundOn] = useState(() => (typeof window !== "undefined" ? getSoundEnabled() : true));
   const homeBgAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Nhạc nền: tự phát khi trang home load xong (nếu đang bật sound)
   useEffect(() => {
     if (!soundOn) {
       if (homeBgAudioRef.current) {
@@ -101,19 +102,24 @@ export default function HomePage() {
       }
       return;
     }
-    try {
-      homeBgAudioRef.current = new Audio(HOME_BG_MUSIC_URL);
-      homeBgAudioRef.current.loop = true;
-      homeBgAudioRef.current.volume = 0.6;
-      homeBgAudioRef.current.play().catch(() => {});
-    } catch {
-      // ignore
+    const audio = new Audio(HOME_BG_MUSIC_URL);
+    audio.loop = true;
+    audio.volume = 0.6;
+    homeBgAudioRef.current = audio;
+    // Phát ngay khi trang đã load (trình duyệt có thể chặn autoplay cho đến khi user tương tác)
+    const playWhenReady = () => {
+      audio.play().catch(() => {});
+    };
+    if (document.readyState === "complete") {
+      playWhenReady();
+    } else {
+      window.addEventListener("load", playWhenReady, { once: true });
     }
     return () => {
-      if (homeBgAudioRef.current) {
-        homeBgAudioRef.current.pause();
-        homeBgAudioRef.current.currentTime = 0;
-      }
+      window.removeEventListener("load", playWhenReady);
+      audio.pause();
+      audio.currentTime = 0;
+      homeBgAudioRef.current = null;
     };
   }, [soundOn]);
 
@@ -138,11 +144,11 @@ export default function HomePage() {
       {/* ═══ Falling Cherry Blossom Petals ═══ */}
       <FallingPetals />
 
-      {/* Nút bật/tắt âm thanh */}
+      {/* Nút bật/tắt âm thanh — góc dưới phải */}
       <button
         type="button"
         onClick={toggleSound}
-        className="fixed top-4 right-4 z-30 w-11 h-11 flex items-center justify-center rounded-xl border border-yellow-400/30 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-yellow-300 hover:text-yellow-200 transition-all duration-200 shadow-lg shadow-black/10"
+        className="fixed bottom-6 right-6 z-30 w-11 h-11 flex items-center justify-center rounded-xl border border-yellow-400/30 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-yellow-300 hover:text-yellow-200 transition-all duration-200 shadow-lg shadow-black/10"
         title={soundOn ? "Tắt âm thanh" : "Bật âm thanh"}
         aria-label={soundOn ? "Tắt âm thanh" : "Bật âm thanh"}
       >
