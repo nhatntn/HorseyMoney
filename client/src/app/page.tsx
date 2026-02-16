@@ -93,7 +93,7 @@ export default function HomePage() {
   const [soundOn, setSoundOn] = useState(() => (typeof window !== "undefined" ? getSoundEnabled() : true));
   const homeBgAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Nhạc nền: tự phát khi trang home load xong (nếu đang bật sound)
+  // Nhạc nền: phát ngay khi vào trang; nếu trình duyệt chặn autoplay thì phát ở lần click/touch đầu
   useEffect(() => {
     if (!soundOn) {
       if (homeBgAudioRef.current) {
@@ -106,17 +106,35 @@ export default function HomePage() {
     audio.loop = true;
     audio.volume = 0.6;
     homeBgAudioRef.current = audio;
-    // Phát ngay khi trang đã load (trình duyệt có thể chặn autoplay cho đến khi user tương tác)
-    const playWhenReady = () => {
-      audio.play().catch(() => {});
+
+    let unlisten: (() => void) | null = null;
+    const tryPlay = () => {
+      audio.play().catch(() => {
+        // Autoplay bị chặn → phát ngay ở lần click/touch/key đầu
+        const onFirstInteraction = () => {
+          audio.play().catch(() => {});
+          unlisten?.();
+          unlisten = null;
+        };
+        document.addEventListener("click", onFirstInteraction, { once: true });
+        document.addEventListener("touchstart", onFirstInteraction, { once: true });
+        document.addEventListener("keydown", onFirstInteraction, { once: true });
+        unlisten = () => {
+          document.removeEventListener("click", onFirstInteraction);
+          document.removeEventListener("touchstart", onFirstInteraction);
+          document.removeEventListener("keydown", onFirstInteraction);
+        };
+      });
     };
-    if (document.readyState === "complete") {
-      playWhenReady();
-    } else {
-      window.addEventListener("load", playWhenReady, { once: true });
+
+    tryPlay();
+    if (document.readyState !== "complete") {
+      window.addEventListener("load", tryPlay, { once: true });
     }
+
     return () => {
-      window.removeEventListener("load", playWhenReady);
+      window.removeEventListener("load", tryPlay);
+      unlisten?.();
       audio.pause();
       audio.currentTime = 0;
       homeBgAudioRef.current = null;
