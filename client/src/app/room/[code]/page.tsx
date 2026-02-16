@@ -389,7 +389,7 @@ function TapArea({
     >
       <div className="text-5xl mb-1 pointer-events-none">👆</div>
       <div className="text-white text-2xl font-black pointer-events-none">
-        BẤM ĐỂ CHẠY!
+        BẤM LIÊN TỤC ĐỂ PHI NGỰA!
       </div>
       <div className="text-white/70 text-sm mt-1 pointer-events-none">
         {Math.round((myProgress / goal) * 100)}%
@@ -692,7 +692,7 @@ export default function RoomPage() {
               onClick={handleCopy}
               className="text-red-200/70 hover:text-yellow-300 text-sm transition-colors"
             >
-              {copied ? "✓ Đã copy!" : "📋 Copy"}
+              {copied ? "✓ Đã copy!" : "📋 Copy Mã Phòng để mời người khác"}
             </button>
           </div>
         </div>
