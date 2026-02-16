@@ -174,20 +174,13 @@ export function setupSocketHandlers(io: Server, prisma: PrismaClient) {
           const participantId = data.participantId;
           if (!roomCode) return;
 
-        // Check if race already exists
-        if (raceManager.hasRace(roomCode)) {
-          socket.emit("room:error", {
-            message: "Race already in progress or completed",
-          });
-          return;
-        }
-
-        // Get room and participants
+        // Get room and participants (include openedAt to allow "next round" for late joiners)
         const room = await prisma.room.findUnique({
           where: { code: roomCode },
           include: {
             participants: { orderBy: { createdAt: "asc" } },
             envelopes: true,
+            amountPool: true,
           },
         });
 
@@ -204,26 +197,42 @@ export function setupSocketHandlers(io: Server, prisma: PrismaClient) {
           return;
         }
 
-        // Check if already completed
-        if (room.envelopes.length > 0) {
+        // Chỉ host mới được bắt đầu đua (vòng đầu hoặc vòng tiếp)
+        if (room.creatorId && participantId !== room.creatorId) {
           socket.emit("room:error", {
-            message: "Envelopes already assigned for this room",
+            message: "Chỉ host mới có thể bắt đầu đua",
           });
           return;
         }
 
-        if (room.participants.length < 2) {
+        const availableCount = room.amountPool.filter((a) => !a.takenByParticipantId).length;
+        const participantsWithoutEnvelope = room.participants.filter((p) => !p.openedAt);
+
+        if (availableCount === 0) {
           socket.emit("room:error", {
-            message: "Need at least 2 participants to start",
+            message: "Đã hết bao lì xì trong phòng",
           });
           return;
         }
 
-        // Initialize race with room's configured duration
+        if (participantsWithoutEnvelope.length < 2) {
+          socket.emit("room:error", {
+            message: "Cần ít nhất 2 người chưa nhận lì xì để bắt đầu đua",
+          });
+          return;
+        }
+
+        // If a previous race was still in memory (e.g. just finished), clean it so we can start next round
+        if (raceManager.hasRace(roomCode)) {
+          cleanupRaceTimers(roomCode);
+          raceManager.cleanup(roomCode);
+        }
+
+        // Initialize race with only participants who haven't received an envelope yet
         const raceDurationSeconds = room.raceDuration || 30;
         raceManager.initRace(
           roomCode,
-          room.participants.map((p) => ({
+          participantsWithoutEnvelope.map((p) => ({
             id: p.id,
             displayName: p.displayName,
           })),
@@ -233,7 +242,7 @@ export function setupSocketHandlers(io: Server, prisma: PrismaClient) {
         const raceTimeoutMs = raceDurationSeconds * 1000;
 
         console.log(
-          `Race starting in room ${roomCode} with ${room.participants.length} participants`
+          `Race starting in room ${roomCode} with ${participantsWithoutEnvelope.length} participants (vòng đua cho người chưa nhận lì xì)`
         );
 
         const timeouts: NodeJS.Timeout[] = [];

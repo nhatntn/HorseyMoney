@@ -122,7 +122,7 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
 
       const room = await prisma.room.findUnique({
         where: { code },
-        include: { participants: true },
+        include: { participants: true, amountPool: true },
       });
 
       if (!room) {
@@ -131,6 +131,13 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
 
       if (room.participants.length >= room.maxPeople) {
         return res.status(400).json({ error: "Room is full" });
+      }
+
+      // Nếu phòng đã có người nhận lì xì mà không còn bao nào → không cho vào
+      const availableCount = room.amountPool.filter((a) => !a.takenByParticipantId).length;
+      const hasStarted = room.participants.some((p) => p.openedAt != null);
+      if (hasStarted && availableCount === 0) {
+        return res.status(400).json({ error: "Phòng đã hết bao lì xì, không thể tham gia" });
       }
 
       const participant = await prisma.participant.create({

@@ -607,6 +607,7 @@ export default function RoomPage() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
+  const [openEnvelopeLoading, setOpenEnvelopeLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -756,6 +757,31 @@ export default function RoomPage() {
     socket.emit("race:start", { roomCode: code, participantId: creatorId });
   }, [code, participantId]);
 
+  const handleOpenEnvelope = useCallback(async () => {
+    if (!participantId || openEnvelopeLoading) return;
+    setOpenEnvelopeLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_URL}/api/rooms/${code}/open`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ participantId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Không thể mở bao");
+        return;
+      }
+      // room:update will be emitted by server; refetch state if needed
+      const roomRes = await fetch(`${API_URL}/api/rooms/${code}`);
+      if (roomRes.ok) setRoomState(await roomRes.json());
+    } catch {
+      setError("Lỗi mạng");
+    } finally {
+      setOpenEnvelopeLoading(false);
+    }
+  }, [code, participantId, openEnvelopeLoading]);
+
   const handleTap = useCallback(() => {
     if (!raceState || raceState.status !== "racing") return;
     const socket = getSocket();
@@ -809,6 +835,25 @@ export default function RoomPage() {
 
   const notEnoughPlayers =
     roomState && !hasResults && !raceState && roomState.participants.length < 2;
+
+  // Người chưa nhận lì xì (cho vòng đua tiếp / mở bao muộn)
+  const withoutEnvelopeCount =
+    roomState?.participants.filter((p) => !p.openedAt).length ?? 0;
+  const meWithoutEnvelope =
+    !!participantId &&
+    !roomState?.participants.find((p) => p.id === participantId)?.openedAt;
+  const canStartNextRound =
+    isCreator &&
+    hasResults &&
+    roomState &&
+    roomState.availableCount > 0 &&
+    withoutEnvelopeCount >= 2 &&
+    !raceState;
+  const showOpenEnvelopeButton =
+    meWithoutEnvelope &&
+    !!roomState &&
+    roomState.availableCount > 0 &&
+    withoutEnvelopeCount === 1;
 
   // Loading state
   if (initialLoading && !showJoinModal) {
@@ -1067,8 +1112,9 @@ export default function RoomPage() {
 
             {/* ─── RESULTS ─── */}
             {hasResults && (
-              <div className="space-y-4">
-                {raceState && (
+              <div className="mt-8 space-y-4">
+                {/* Chỉ hiện "Vị Trí Cuối Cùng" khi user tham gia vòng đua đó và đua đã kết thúc — tránh người vào sau thấy 2 khung đua (RACING + RESULTS) */}
+                {raceState?.status === "finished" && myHorse && (
                   <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.25)] border border-yellow-400/30 p-4">
                     <h2 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
                       <span>🏁</span> Vị Trí Cuối Cùng
@@ -1107,6 +1153,41 @@ export default function RoomPage() {
                   envelopes={roomState.envelopes}
                   myId={participantId}
                 />
+
+                {/* Còn bao lì xì — vòng đua tiếp hoặc mở bao (người vào sau) */}
+                {roomState.availableCount > 0 && (
+                  <div className="bg-amber-50/95 backdrop-blur-sm rounded-2xl border border-amber-200/50 p-5 space-y-3">
+                    <p className="text-amber-800 font-medium text-center">
+                      🧧 Còn <strong>{roomState.availableCount}</strong> bao lì xì — người vào sau có thể nhận phần còn lại
+                    </p>
+                    {canStartNextRound && (
+                      <div className="text-center">
+                        <button
+                          onClick={handleStartRace}
+                          className="bg-gradient-to-r from-red-700 to-amber-500 hover:from-red-800 hover:to-amber-600 text-white font-bold py-3 px-6 rounded-xl text-base transition-all shadow-lg"
+                        >
+                          Bắt đầu vòng đua tiếp ({withoutEnvelopeCount} người chưa nhận)
+                        </button>
+                      </div>
+                    )}
+                    {showOpenEnvelopeButton && (
+                      <div className="text-center">
+                        <button
+                          onClick={handleOpenEnvelope}
+                          disabled={openEnvelopeLoading}
+                          className="bg-gradient-to-r from-red-700 to-amber-500 hover:from-red-800 hover:to-amber-600 disabled:opacity-70 text-white font-bold py-3 px-6 rounded-xl text-base transition-all shadow-lg"
+                        >
+                          {openEnvelopeLoading ? "Đang mở..." : "Mở bao lì xì 🧧"}
+                        </button>
+                      </div>
+                    )}
+                    {meWithoutEnvelope && withoutEnvelopeCount >= 2 && !isCreator && (
+                      <p className="text-amber-700 text-sm text-center">
+                        Đang chờ host bắt đầu vòng đua tiếp theo để giành bao còn lại...
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </>
