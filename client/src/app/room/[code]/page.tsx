@@ -3,11 +3,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSocket } from "@/lib/socket";
+import { getSoundEnabled, setSoundEnabled } from "@/lib/soundPref";
+import { playCountdownTing, playRaceGo } from "@/lib/raceSounds";
 import { Horse } from "@/components/Horse";
 import { FallingPetals } from "@/components/FallingPetals";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const RACE_GOAL = 100;
+const RACE_BG_MUSIC_URL = "/sounds/race-bg.mp3";
 
 // ─── Types ────────────────────────────────────────────────────
 interface RoomState {
@@ -612,6 +615,23 @@ export default function RoomPage() {
   const [copied, setCopied] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const askedMicRef = useRef(false);
+  const raceBgAudioRef = useRef<HTMLAudioElement | null>(null);
+  const roomStateRef = useRef<RoomState | null>(null);
+  const soundOnRef = useRef(true);
+  roomStateRef.current = roomState ?? null;
+
+  const [soundOn, setSoundOnState] = useState(() => (typeof window !== "undefined" ? getSoundEnabled() : true));
+  soundOnRef.current = soundOn;
+
+  const toggleSound = useCallback(() => {
+    const next = !soundOn;
+    setSoundOnState(next);
+    setSoundEnabled(next);
+    if (!next && raceBgAudioRef.current) {
+      raceBgAudioRef.current.pause();
+      raceBgAudioRef.current.currentTime = 0;
+    }
+  }, [soundOn]);
 
   useEffect(() => {
     const stored = localStorage.getItem(`tet_participant_${code}`);
@@ -647,12 +667,30 @@ export default function RoomPage() {
 
     socket.on("race:countdown", (data: { count: number }) => {
       setCountdown(data.count);
+      if (soundOnRef.current && data.count >= 1 && data.count <= 3) {
+        playCountdownTing();
+      }
     });
 
     socket.on("race:go", (data: RaceState) => {
       setCountdown(0);
       setRaceState(data);
       setTimeout(() => setCountdown(null), 700);
+      if (soundOnRef.current) playRaceGo();
+      // Nhạc nền chỉ phát khi bật sound và chơi tap to run (manual)
+      const raceMode = roomStateRef.current?.room?.raceMode ?? "manual";
+      if (soundOnRef.current && raceMode === "manual") {
+        try {
+          if (!raceBgAudioRef.current) {
+            raceBgAudioRef.current = new Audio(RACE_BG_MUSIC_URL);
+            raceBgAudioRef.current.loop = true;
+          }
+          raceBgAudioRef.current.currentTime = 0;
+          raceBgAudioRef.current.play().catch(() => {});
+        } catch {
+          // File không tồn tại hoặc trình duyệt chặn autoplay
+        }
+      }
     });
 
     socket.on("race:progress", (data: RaceState) => {
@@ -661,6 +699,15 @@ export default function RoomPage() {
 
     socket.on("race:complete", (data: RaceState) => {
       setRaceState(data);
+      // Dừng nhạc nền khi kết thúc đua
+      try {
+        if (raceBgAudioRef.current) {
+          raceBgAudioRef.current.pause();
+          raceBgAudioRef.current.currentTime = 0;
+        }
+      } catch {
+        // ignore
+      }
     });
 
     socket.on("room:error", (data: { message: string }) => {
@@ -678,6 +725,10 @@ export default function RoomPage() {
       socket.off("room:error");
       socket.disconnect();
       socketRef.current = false;
+      if (raceBgAudioRef.current) {
+        raceBgAudioRef.current.pause();
+        raceBgAudioRef.current.currentTime = 0;
+      }
     };
   }, [participantId, code]);
 
@@ -889,6 +940,20 @@ export default function RoomPage() {
         className="fixed top-4 left-4 z-30 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-yellow-300 hover:text-yellow-200 text-sm font-medium px-4 py-2 rounded-xl border border-yellow-400/30 transition-all duration-200 shadow-lg shadow-black/10"
       >
         ← Về Trang Chủ
+      </button>
+
+      <button
+        type="button"
+        onClick={toggleSound}
+        className="fixed top-4 right-4 z-30 w-11 h-11 flex items-center justify-center rounded-xl border border-yellow-400/30 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-yellow-300 hover:text-yellow-200 transition-all duration-200 shadow-lg shadow-black/10"
+        title={soundOn ? "Tắt âm thanh" : "Bật âm thanh"}
+        aria-label={soundOn ? "Tắt âm thanh" : "Bật âm thanh"}
+      >
+        {soundOn ? (
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        ) : (
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+        )}
       </button>
 
       <div className="max-w-lg mx-auto relative z-20">
