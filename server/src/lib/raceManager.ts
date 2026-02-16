@@ -1,5 +1,5 @@
-export const RACE_GOAL = 100;
-const TAP_COOLDOWN_MS = 50; // max ~20 taps/sec per player
+export const RACE_GOAL = 138;
+const TAP_COOLDOWN_MS = 78; // max ~13 taps/sec — khó thêm ~20%
 
 interface InternalHorse {
   participantId: string;
