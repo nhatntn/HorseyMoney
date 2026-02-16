@@ -350,6 +350,34 @@ export function setupSocketHandlers(io: Server, prisma: PrismaClient) {
       }
     );
 
+    // ─── Race Voice (volume-based progress for voice mode) ──
+    socket.on(
+      "race:voice",
+      async (data: { roomCode: string; participantId: string; delta: number }) => {
+        try {
+          const roomCode = normalizeRoomCode(data.roomCode || "");
+          const participantId = data.participantId;
+          const delta = Math.max(1, Math.min(5, Math.floor(Number(data.delta) || 1)));
+          if (!roomCode || !participantId) return;
+
+          const progressed = raceManager.handleVoice(roomCode, participantId, delta);
+          if (!progressed) return;
+
+          if (raceManager.isComplete(roomCode)) {
+            const finalState = raceManager.getSerializedState(roomCode);
+            io.to(roomCode).emit("race:progress", finalState);
+            io.to(roomCode).emit("race:complete", finalState);
+            const finishOrder = raceManager.getFinishOrder(roomCode);
+            await assignAmountsByFinishOrder(prisma, io, roomCode, finishOrder);
+            cleanupRaceTimers(roomCode);
+            setTimeout(() => raceManager.cleanup(roomCode), 5000);
+          }
+        } catch (error) {
+          console.error("Race voice error:", error);
+        }
+      }
+    );
+
     socket.on("disconnect", () => {
       console.log(`Client disconnected: ${socket.id}`);
     });

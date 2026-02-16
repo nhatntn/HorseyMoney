@@ -75,27 +75,37 @@ class RaceManager {
   }
 
   handleTap(roomCode: string, participantId: string): boolean {
+    return this.handleProgress(roomCode, participantId, 1);
+  }
+
+  /** Voice mode: add delta progress (1–5) per call, same 50ms cooldown. */
+  handleVoice(roomCode: string, participantId: string, delta: number): boolean {
+    const clamped = Math.max(1, Math.min(5, Math.floor(delta)));
+    return this.handleProgress(roomCode, participantId, clamped);
+  }
+
+  private handleProgress(
+    roomCode: string,
+    participantId: string,
+    delta: number
+  ): boolean {
     const race = this.races.get(roomCode);
     if (!race || race.status !== "racing") return false;
 
     const horse = race.horses.get(participantId);
     if (!horse || horse.finished) return false;
 
-    // Rate limiting
     const now = Date.now();
     if (now - horse.lastTapTime < TAP_COOLDOWN_MS) return false;
     horse.lastTapTime = now;
 
-    // Increment progress
-    horse.progress = Math.min(horse.progress + 1, race.goal);
+    horse.progress = Math.min(horse.progress + delta, race.goal);
 
-    // Check finish
     if (horse.progress >= race.goal && !horse.finished) {
       horse.finished = true;
       horse.finishPosition = race.finishOrder.length + 1;
       race.finishOrder.push(participantId);
 
-      // Check if all finished
       if (race.finishOrder.length >= race.totalParticipants) {
         race.status = "finished";
       }

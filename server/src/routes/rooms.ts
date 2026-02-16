@@ -24,7 +24,7 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
   // Create Room
   router.post("/rooms", async (req, res) => {
     try {
-      const { roomName, maxPeople, amountsCsv, raceDuration, creatorJoin, creatorName, creatorGender, creatorAge } = req.body;
+      const { roomName, maxPeople, amountsCsv, raceDuration, raceMode, creatorJoin, creatorName, creatorGender, creatorAge } = req.body;
 
       if (!maxPeople || !amountsCsv) {
         return res.status(400).json({ error: "maxPeople and amountsCsv are required" });
@@ -56,6 +56,7 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
           name: roomName || null,
           maxPeople: parseInt(maxPeople, 10),
           raceDuration: Math.max(10, Math.min(120, parseInt(raceDuration, 10) || 30)),
+          raceMode: raceMode === "voice" ? "voice" : "manual",
           amountPool: {
             create: amounts.map((amount: number) => ({
               id: uuidv4(),
@@ -92,9 +93,20 @@ export function roomRoutes(prisma: PrismaClient, io: Server): Router {
       }
 
       return res.json({ roomCode: room.code, creatorId: creatorParticipantId });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Create room error:", error);
-      return res.status(500).json({ error: "Failed to create room" });
+      const message =
+        error && typeof error === "object" && "message" in error
+          ? String((error as { message: unknown }).message)
+          : "Failed to create room";
+      const hint =
+        typeof message === "string" && message.toLowerCase().includes("racemode")
+          ? " Chạy trong thư mục server: npx prisma db push"
+          : "";
+      return res.status(500).json({
+        error: "Failed to create room",
+        details: message + hint,
+      });
     }
   });
 

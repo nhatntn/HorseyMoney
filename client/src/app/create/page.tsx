@@ -18,6 +18,7 @@ export default function CreateRoomPage() {
   const [maxPeople, setMaxPeople] = useState("10");
   const [amountsCsv, setAmountsCsv] = useState("50,50,100,100,200,200,500");
   const [raceDuration, setRaceDuration] = useState("30");
+  const [raceMode, setRaceMode] = useState<"manual" | "voice">("manual");
   const [creatorJoin, setCreatorJoin] = useState(true);
   const [creatorName, setCreatorName] = useState("");
   const [creatorGender, setCreatorGender] = useState("other");
@@ -72,7 +73,7 @@ export default function CreateRoomPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          roomName, maxPeople, amountsCsv, raceDuration,
+          roomName, maxPeople, amountsCsv, raceDuration, raceMode,
           creatorJoin, creatorName: creatorName.trim(), creatorGender, creatorAge: creatorAge || undefined,
         }),
       });
@@ -80,7 +81,7 @@ export default function CreateRoomPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Tạo phòng thất bại");
+        setError(data.details || data.error || "Tạo phòng thất bại");
         return;
       }
 
@@ -244,6 +245,39 @@ export default function CreateRoomPage() {
             <p className="text-xs text-gray-400 mt-1.5">
               Giới hạn thời gian đua. Ai chưa về đích sẽ xếp hạng theo tiến độ.
             </p>
+          </div>
+
+          {/* Race Mode: Manual vs Voice */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Thể thức phi ngựa
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setRaceMode("manual")}
+                className={`p-3 rounded-xl border-2 text-center transition-all ${
+                  raceMode === "manual"
+                    ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                    : "border-gray-200 hover:border-red-300 text-gray-600"
+                }`}
+              >
+                <div className="text-sm font-medium">👆 Bằng tay</div>
+                <div className="text-xs text-gray-500 mt-0.5">Bấm liên tục để phi</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRaceMode("voice")}
+                className={`p-3 rounded-xl border-2 text-center transition-all ${
+                  raceMode === "voice"
+                    ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                    : "border-gray-200 hover:border-red-300 text-gray-600"
+                }`}
+              >
+                <div className="text-sm font-medium">🎤 Bằng giọng nói</div>
+                <div className="text-xs text-gray-500 mt-0.5">La to vào mic để tăng tốc</div>
+              </button>
+            </div>
           </div>
 
           {/* Creator Join Option */}

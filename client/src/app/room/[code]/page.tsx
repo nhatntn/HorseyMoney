@@ -17,6 +17,7 @@ interface RoomState {
     name: string | null;
     maxPeople: number;
     raceDuration: number;
+    raceMode: string; // "manual" | "voice"
     creatorId: string | null;
   };
   participants: Array<{
@@ -398,6 +399,144 @@ function TapArea({
   );
 }
 
+// ─── Voice Area (mic volume → speed) ──────────────────────────
+const VOICE_TICK_MS = 50;
+const VOICE_THRESHOLD = 0.12; // min normalized volume to add progress
+const VOICE_DELTA_MAX = 3;    // max progress per tick when very loud
+
+function VoiceArea({
+  onVoice,
+  disabled,
+  myProgress,
+  goal,
+  finished,
+  finishPosition,
+}: {
+  onVoice: (delta: number) => void;
+  disabled: boolean;
+  myProgress: number;
+  goal: number;
+  finished: boolean;
+  finishPosition: number | null;
+}) {
+  const [volume, setVolume] = useState(0);
+  const [micError, setMicError] = useState<string | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const ctxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
+
+  // Setup mic and analyser
+  useEffect(() => {
+    if (finished || disabled) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+        const ctx = new AudioContext();
+        ctxRef.current = ctx;
+        const src = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.6;
+        src.connect(analyser);
+        analyserRef.current = analyser;
+        const bufferLength = analyser.frequencyBinCount;
+        dataArrayRef.current = new Uint8Array(bufferLength) as Uint8Array<ArrayBuffer>;
+        setMicError(null);
+      } catch (e) {
+        if (!cancelled) setMicError("Không truy cập được mic. Cho phép mic và tải lại.");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      ctxRef.current?.close();
+      ctxRef.current = null;
+      analyserRef.current = null;
+      dataArrayRef.current = null;
+    };
+  }, [finished, disabled]);
+
+  // Tick: read volume, optionally send voice progress
+  useEffect(() => {
+    if (finished || disabled || !analyserRef.current || !dataArrayRef.current) return;
+
+    const analyser = analyserRef.current;
+    const dataArray = dataArrayRef.current;
+
+    const tick = () => {
+      analyser.getByteTimeDomainData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        const n = (dataArray[i] - 128) / 128;
+        sum += n * n;
+      }
+      const rms = Math.sqrt(sum / dataArray.length);
+      const normalized = Math.min(1, rms * 2.5); // scale so shouting ~0.3–1
+      setVolume(normalized);
+
+      if (normalized > VOICE_THRESHOLD) {
+        const delta = 1 + Math.min(VOICE_DELTA_MAX - 1, Math.floor(normalized * VOICE_DELTA_MAX));
+        onVoice(delta);
+      }
+    };
+
+    const id = setInterval(tick, VOICE_TICK_MS);
+    return () => clearInterval(id);
+  }, [finished, disabled, onVoice]);
+
+  if (finished) {
+    const medal =
+      finishPosition && finishPosition <= 3
+        ? MEDALS[finishPosition - 1]
+        : `#${finishPosition}`;
+    return (
+      <div className="h-44 bg-gradient-to-b from-green-500 to-green-600 rounded-2xl flex flex-col items-center justify-center select-none shadow-lg">
+        <div className="text-5xl mb-2">{medal}</div>
+        <div className="text-white text-xl font-bold">
+          Bạn về đích {medal}!
+        </div>
+        <div className="text-white/70 text-sm mt-1">
+          Đang chờ người khác...
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-44 rounded-2xl flex flex-col items-center justify-center select-none shadow-lg bg-gradient-to-b from-violet-600 to-violet-700 p-4">
+      <div className="text-4xl mb-1">🎤</div>
+      <div className="text-white text-lg font-black text-center">
+        LA TO VÀO MIC ĐỂ PHI NGỰA!
+      </div>
+      <p className="text-white/80 text-xs mt-1 text-center">
+        Càng to, càng dài hơi → ngựa chạy càng nhanh
+      </p>
+      <div className="w-full max-w-[200px] h-2 bg-white/20 rounded-full mt-2 overflow-hidden">
+        <div
+          className="h-full bg-white rounded-full transition-all duration-75"
+          style={{ width: `${Math.round(volume * 100)}%` }}
+        />
+      </div>
+      <div className="text-white/70 text-sm mt-1">
+        {Math.round((myProgress / goal) * 100)}%
+      </div>
+      {micError && (
+        <p className="text-red-200 text-xs mt-1 text-center">{micError}</p>
+      )}
+    </div>
+  );
+}
+
 // ─── Results View ─────────────────────────────────────────────
 function ResultsView({
   envelopes,
@@ -600,6 +739,15 @@ export default function RoomPage() {
     socket.emit("race:tap", { roomCode: code, participantId });
   }, [raceState, code, participantId]);
 
+  const handleVoice = useCallback(
+    (delta: number) => {
+      if (!raceState || raceState.status !== "racing") return;
+      const socket = getSocket();
+      socket.emit("race:voice", { roomCode: code, participantId, delta });
+    },
+    [raceState, code, participantId]
+  );
+
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
     setCopied(true);
@@ -770,9 +918,14 @@ export default function RoomPage() {
                     <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg border border-gray-200 font-medium">
                       ⏱ {roomState.room.raceDuration}s
                     </span>
+                    <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg border border-gray-200 font-medium">
+                      {(roomState.room.raceMode ?? "manual") === "voice" ? "🎤 Giọng nói" : "👆 Bằng tay"}
+                    </span>
                   </div>
                   <p className="text-gray-400 text-xs mb-4">
-                    Bấm liên tục để phi ngựa — Về nhất lấy bao lì xì lớn nhất!
+                    {(roomState.room.raceMode ?? "manual") === "voice"
+                      ? "La to vào mic để phi ngựa — càng to càng nhanh!"
+                      : "Bấm liên tục để phi ngựa — Về nhất lấy bao lì xì lớn nhất!"}
                   </p>
                   {canStartRace && (
                     <button
@@ -826,16 +979,26 @@ export default function RoomPage() {
                     />
                   </div>
 
-                  {isInRace && (
-                    <TapArea
-                      onTap={handleTap}
-                      disabled={raceState.status !== "racing"}
-                      myProgress={myProgress}
-                      goal={raceState.goal}
-                      finished={myFinished}
-                      finishPosition={myFinishPosition}
-                    />
-                  )}
+                  {isInRace &&
+                    ((roomState.room.raceMode ?? "manual") === "voice" ? (
+                      <VoiceArea
+                        onVoice={handleVoice}
+                        disabled={raceState.status !== "racing"}
+                        myProgress={myProgress}
+                        goal={raceState.goal}
+                        finished={myFinished}
+                        finishPosition={myFinishPosition}
+                      />
+                    ) : (
+                      <TapArea
+                        onTap={handleTap}
+                        disabled={raceState.status !== "racing"}
+                        myProgress={myProgress}
+                        goal={raceState.goal}
+                        finished={myFinished}
+                        finishPosition={myFinishPosition}
+                      />
+                    ))}
 
                   {!isInRace && (
                     <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center border border-yellow-400/20">

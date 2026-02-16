@@ -7,6 +7,7 @@ export interface RoomState {
     name: string | null;
     maxPeople: number;
     raceDuration: number;
+    raceMode: string; // "manual" | "voice"
     creatorId: string | null;
   };
   participants: Array<{
@@ -69,6 +70,7 @@ export async function getRoomState(
       name: room.name,
       maxPeople: room.maxPeople,
       raceDuration: room.raceDuration,
+      raceMode: room.raceMode ?? "manual",
       creatorId: room.creatorId,
     },
     participants: room.participants,
