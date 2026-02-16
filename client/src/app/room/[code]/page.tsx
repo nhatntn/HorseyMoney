@@ -400,8 +400,8 @@ function TapArea({
 }
 
 // ─── Voice Area (mic volume → speed) ──────────────────────────
-const VOICE_TICK_MS = 75;    // tick nhanh hơn → dễ lên progress (độ khó ~60%)
-const VOICE_THRESHOLD = 0.11; // dễ kích hoạt, không cần la quá to
+const VOICE_TICK_MS = 100;   // độ khó ~80% so với ban đầu
+const VOICE_THRESHOLD = 0.16; // cần la rõ hơn mới cộng
 const VOICE_DELTA_MAX = 1;    // mỗi lần +1
 
 function VoiceArea({
@@ -481,7 +481,7 @@ function VoiceArea({
         sum += n * n;
       }
       const rms = Math.sqrt(sum / dataArray.length);
-      const normalized = Math.min(1, rms * 2.4); // scale cao hơn → dễ đạt ngưỡng (độ khó ~60%)
+      const normalized = Math.min(1, rms * 2.1); // độ khó ~80%
       setVolume(normalized);
 
       if (normalized > VOICE_THRESHOLD) {
