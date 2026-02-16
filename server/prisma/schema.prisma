@@ -49,7 +49,7 @@ model AmountPool {
 model Wish {
   id       String  @id @default(uuid())
   text     String
-  ageGroup String  @default("all") // "child" | "teen" | "adult" | "elder" | "all"
+  ageGroup String  @default("all") // AgeGroup từ server/src/data/wishes.ts hoặc "all"
   active   Boolean @default(true)
 }
 

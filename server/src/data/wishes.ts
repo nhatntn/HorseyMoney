@@ -1,105 +1,120 @@
 /**
- * Lời chúc theo nhóm tuổi:
- * - all: dùng cho mọi lứa tuổi hoặc khi không có tuổi
- * - child: 0–12 (nhi đồng)
- * - teen: 13–17 (thiếu niên)
- * - adult: 18–40 (thanh niên, trung niên trẻ)
- * - elder: 41+ (trung niên, cao tuổi)
+ * Lời chúc theo nhóm tuổi (tuổi tính theo năm, biên trên inclusive):
+ * - 0–6, 7–12, 13–16, 17–18, 19–22, 23–30, 31–40, 40+
  */
-export const wishesByAge: Record<string, string[]> = {
-  all: [
-    "Chúc mừng năm mới! Vạn sự như ý, an khang thịnh vượng!",
-    "Năm mới phát tài phát lộc, sức khỏe dồi dào!",
-    "Cung chúc tân xuân! Phúc – Lộc – Thọ!",
-    "Chúc năm mới hạnh phúc, vạn sự cát tường!",
-    "An khang thịnh vượng, tấn tài tấn lộc!",
-    "Năm mới bình an, thuận lợi đôi đường!",
-    "Chúc sức khỏe dồi dào, tài lộc đầy nhà!",
-    "Tân niên vạn phúc, gia đình hạnh phúc!",
-    "Chúc xuân sang an lành, phú quý vinh hoa!",
-    "Năm mới muôn điều tốt đẹp, phúc lộc an khang!",
-    "Chúc tân niên thịnh vượng, mọi sự hanh thông!",
-    "Chúc năm mới tràn đầy niềm vui và may mắn!",
-    "Xuân sang phú quý, năm mới an lành!",
-    "Chúc gặp ai cũng vui, làm gì cũng suôn!",
-    "Chúc Tết này bình an vô sự, năm tới phát tài phát lộc!",
+
+export const DEFAULT_AGE_GROUP = "22_30" as const;
+
+/** Giá trị dùng trong DB cho lời chúc áp dụng mọi lứa tuổi. */
+export const AGE_GROUP_ALL = "all" as const;
+
+export type AgeGroup =
+  | "0_6"
+  | "6_12"
+  | "12_16"
+  | "16_18"
+  | "18_22"
+  | "22_30"
+  | "30_40"
+  | "40_plus";
+
+export const wishesByAge: Record<AgeGroup, string[]> = {
+  "0_6": [
+    "Chúc bé năm mới ăn ngoan, ngủ kỹ, lớn nhanh như thổi và lúc nào cũng cười tít mắt đáng yêu nhất nhà!",
+    "Năm mới chúc con khỏe mạnh, vui vẻ, được nhiều quà và ôm lì xì mà không chịu buông!",
+    "Chúc bé cả năm không ốm đau, chơi thật vui và được ba mẹ chiều hết nấc!",
+    "Năm mới chúc con mỗi ngày đều khám phá được điều mới lạ và luôn cười giòn tan!",
+    "Chúc bé năm nay cao thêm một khúc, thông minh thêm vài phần và đáng yêu gấp mười lần!",
+    "Năm mới chúc con ăn gì cũng ngon, chơi gì cũng vui và không bao giờ bị la!",
+    "Chúc bé lúc nào cũng mạnh khỏe, ngủ ngon và mơ toàn những giấc mơ đẹp như cổ tích!",
+    "Năm mới chúc con luôn vui vẻ, chạy nhảy thật nhanh và cười thật tươi!",
+    "Chúc bé năm nay nói sõi hơn, hát hay hơn và làm cả nhà cười nhiều hơn!",
+    "Năm mới chúc con có thật nhiều bạn mới và chơi đâu cũng vui!",
+    "Chúc bé luôn được yêu thương, được ôm nhiều và được lì xì nhiều gấp đôi năm trước!",
+    "Năm mới chúc con khỏe mạnh như siêu nhân và đáng yêu như thiên thần!",
+    "Chúc bé ăn ngoan để chóng lớn và nhận thêm thật nhiều lì xì!",
+    "Năm mới chúc con không khóc nhè, không nhõng nhẽo mà lúc nào cũng cười tươi!",
+    "Chúc bé năm nay học nói nhanh hơn, chạy nhanh hơn và vui nhiều hơn!",
+    "Năm mới chúc con luôn vui vẻ, ba mẹ tự hào và ông bà thương yêu hết mực!",
+    "Chúc bé luôn hồn nhiên, vui vẻ và mang tiếng cười đến cho cả nhà!",
+    "Năm mới chúc con khỏe như voi con, nhanh như thỏ nhỏ và cười như nắng!",
+    "Chúc bé mỗi ngày đều là một ngày vui và mỗi lần mở lì xì đều thấy thích thú!",
+    "Năm mới chúc con lớn lên thật hạnh phúc và luôn được bao bọc trong yêu thương!"
   ],
 
-  child: [
-    "Chúc em năm mới ngoan ngoãn, học giỏi, được nhiều lì xì!",
-    "Năm mới chúc em hay ăn chóng lớn, luôn vui vẻ!",
-    "Chúc em Tết vui vẻ, chơi game giỏi, thi đâu đỗ đấy!",
-    "Năm mới em được nhiều quà, nhiều bánh kẹo, nhiều lì xì!",
-    "Chúc em luôn khỏe mạnh, cười tươi như hoa!",
-    "Năm mới ba mẹ khen, ông bà thương, bạn bè quý!",
-    "Chúc em năm nay điểm 10 đầy sổ, không bị mắng!",
-    "Năm mới chúc em ngủ sớm dậy sớm, không bị nhắc!",
-    "Chúc em được đi chơi nhiều, ăn nhiều, vui nhiều!",
-    "Năm mới em cao thêm, khỏe thêm, xinh thêm!",
+  "6_12": [
+    "Chúc con năm mới học giỏi hơn năm cũ, làm bài không cần nhắc mà điểm vẫn cao ngất ngưởng!",
+    "Năm mới chúc con cao thêm vài phân, giỏi thêm vài phần và tiền lì xì phải nhét đầy cả heo đất!",
+    "Chúc con đi học luôn được cô khen, về nhà được ba mẹ thưởng và Tết này mở lì xì mỏi tay!",
+    "Năm mới chúc con thi đâu trúng đó, kiểm tra toàn điểm cao mà không cần học khuya!",
+    "Chúc con năm nay đọc sách nhiều hơn, chơi game ít hơn và vẫn vui hết mình!",
+    "Năm mới chúc con luôn tự tin, mạnh dạn và không sợ phát biểu trước lớp!",
+    "Chúc con mỗi ngày đến trường là một ngày vui, về nhà là một ngày cười!",
+    "Năm mới chúc con học đâu hiểu đó, làm đâu đúng đó và không bị mắng!",
+    "Chúc con năm nay đạt thật nhiều thành tích để cả nhà tự hào!",
+    "Năm mới chúc con luôn khỏe mạnh, nhanh nhẹn và vui vẻ!",
+    "Chúc con năm nay kết thêm nhiều bạn tốt và có thật nhiều kỷ niệm đẹp!",
+    "Năm mới chúc con ăn khỏe, ngủ ngon và cao lớn vượt bậc!",
+    "Chúc con năm nay đạt điểm 10 nhiều hơn số lần bị nhắc nhở!",
+    "Năm mới chúc con luôn tự tin và dám thử những điều mới!",
+    "Chúc con học giỏi, chơi vui và luôn là niềm tự hào của gia đình!",
+    "Năm mới chúc con đạt được những ước mơ nhỏ bé của mình!",
+    "Chúc con năm nay tham gia hoạt động gì cũng được khen!",
+    "Năm mới chúc con luôn vui tươi như ánh nắng đầu xuân!",
+    "Chúc con mỗi ngày đều tiến bộ hơn một chút và hạnh phúc hơn một chút!",
+    "Năm mới chúc con thành công trong học tập và nhận được thật nhiều lời khen!"
   ],
 
-  teen: [
-    "Năm mới xem phim Tết không spoiler, chơi game không lag!",
-    "Chúc năm nay thi đâu đỗ đấy, không phải học thêm!",
-    "Năm mới crush nhắn tin trước, hẹn hò không bị ghost!",
-    "Chúc lì xì đầy túi, ví không bao giờ rỗng!",
-    "Năm mới ba mẹ không so con nhà người ta!",
-    "Chúc học tài thi phận, điểm cao không cần học khuya!",
-    "Năm mới bạn bè rủ đi chơi suốt, không ai hỏi bài!",
-    "Chúc năm nay được mua đồ mới, điện thoại không lag!",
-    "Năm mới ngủ đủ giấc, dậy vẫn kịp đi học!",
-    "Chúc Tết này vui hết mình, năm tới thi đỗ đại học!",
+  "12_16": [
+    "Năm mới chúc bạn học đâu hiểu đó, thi đâu trúng đó và không còn bị hỏi 'sao chưa học bài?'!",
+    "Chúc bạn năm nay vừa học giỏi vừa chơi chất, crush nhìn là phải để ý ngay!",
+    "Năm mới chúc bạn lớn thêm một tuổi nhưng đừng lớn thêm áp lực, mọi thứ cứ từ từ mà thành công!",
   ],
 
-  adult: [
-    "Chúc năm nay bug tự biến mất, deploy một phát là xong!",
-    "Chúc code chạy lần đầu là pass, không cần debug!",
-    "Tiền về như lũ, sếp tăng lương không cần xin!",
-    "Chúc WiFi không bao giờ lag, pin không bao giờ hết!",
-    "Năm mới không OT, không fix bug ngày Tết!",
-    "Chúc production không bao giờ sập, on-call không bao giờ kêu!",
-    "Chúc inbox luôn trống, deadline luôn xa!",
-    "Năm mới tiền nhiều hơn bug, yêu đời hơn yêu code!",
-    "Chúc lương tháng 13… 14… 15 luôn cho nóng!",
-    "Chúc git merge không bao giờ conflict!",
-    "Năm mới review code không ai reject!",
-    "Chúc gặp sếp toàn tin vui, họp toàn tin vắn!",
-    "Chúc bán bánh chưng không dính lá, gói nem không bể!",
-    "Chúc đi đâu cũng gặp đèn xanh, đỗ xe không bị phạt!",
-    "Chúc sáng dậy bình tĩnh, tối ngủ không nghĩ đến việc!",
-    "Năm mới mèo không cào ghế, chó không cắn dép!",
-    "Chúc gửi nhầm tin đúng người, chuyển nhầm tiền đúng số!",
-    "Chúc đi chợ Tết không bị chặt chém, mua gì cũng hời!",
-    "Năm mới thắng lớn mỗi lần đá phạt, mỗi ván bài đều ù!",
-    "Chúc karaoke hát đúng tone, nhậu không say về vẫn nhớ đường!",
-    "Chúc họ hàng hỏi gì trả lời được hết, không ai hỏi lương!",
-    "Năm mới mở tủ lạnh toàn đồ ăn, mở ví toàn tiền!",
-    "Chúc làm gì cũng có người khen, sai đâu sửa đó không ai chê!",
-    "Chúc năm mới đủ tiền mua quà, đủ sức đi chúc Tết hết nhà!",
-    "Năm mới một bước lên mây, hai bước về nhà không mệt!",
+  "16_18": [
+    "Chúc năm nay thi cử suôn sẻ, chọn đúng ngành mình thích và điểm số đẹp như mơ!",
+    "Năm mới chúc bạn bước vào tuổi trưởng thành thật tự tin, tự chủ và không còn lo lắng mông lung!",
+    "Chúc bạn năm nay đạt được mục tiêu lớn nhất đời học sinh – thi đâu đỗ đó, không phải học lại!",
   ],
 
-  elder: [
-    "Chúc năm mới sức khỏe dồi dào, con cháu sum vầy!",
-    "Năm mới an khang thịnh vượng, phúc lộc trường thọ!",
-    "Chúc ông bà luôn vui khỏe, con cháu hiếu thảo!",
-    "Năm mới ăn ngon ngủ tốt, không đau không ốm!",
-    "Chúc gia đình đoàn viên, trên thuận dưới hòa!",
-    "Năm mới phúc như Đông Hải, thọ tỷ Nam Sơn!",
-    "Chúc sáng dậy khỏe re, tối về ngủ ngon!",
-    "Năm mới cháu ngoan cháu giỏi, con cái thuận hòa!",
-    "Chúc Tết ấm no, bình an vô sự!",
-    "Năm mới vạn sự như ý, sống lâu trăm tuổi!",
+  "18_22": [
+    "Chúc năm mới đi học đại học không trễ deadline, làm bài nhóm không gặp team 'tàng hình'!",
+    "Năm mới chúc bạn thực tập đâu cũng được nhận, CV gửi đâu cũng được gọi phỏng vấn!",
+    "Chúc tuổi trẻ của bạn rực rỡ, dám thử, dám sai và dám thành công thật lớn!",
+  ],
+
+  "22_30": [
+    "Chúc năm nay công việc suôn sẻ, lương tăng đều và cuối tháng tài khoản không bao giờ về 0!",
+    "Năm mới chúc bạn sự nghiệp thăng hoa, tình yêu ổn định và sức khỏe luôn full pin!",
+    "Chúc năm nay làm ít mà tiền nhiều, deadline xa mà cơ hội gần!",
+  ],
+
+  "30_40": [
+    "Chúc năm mới sự nghiệp vững vàng, gia đình ấm êm và mọi dự định đều thành hiện thực!",
+    "Năm mới chúc bạn cân bằng được công việc và cuộc sống, kiếm tiền giỏi mà vẫn ngủ ngon!",
+    "Chúc năm nay đầu tư đâu thắng đó, làm gì cũng có lộc và gia đình luôn tràn đầy tiếng cười!",
+  ],
+
+  "40_plus": [
+    "Chúc năm mới sức khỏe dồi dào, tinh thần minh mẫn và mỗi ngày đều an nhiên hạnh phúc!",
+    "Năm mới kính chúc gia đình sum vầy, con cháu hiếu thảo và mọi việc đều hanh thông!",
+    "Chúc một năm bình an, phúc lộc đầy nhà và niềm vui nối tiếp niềm vui!",
   ],
 };
 
-export type AgeGroup = "all" | "child" | "teen" | "adult" | "elder";
-
-/** 0–12: child, 13–17: teen, 18–40: adult, 41+: elder, null/undefined: all */
+/**
+ * Phân loại tuổi vào nhóm để lấy lời chúc phù hợp.
+ * @param age Tuổi (năm), có thể null/undefined nếu không chọn.
+ * @returns Mã nhóm tuổi; dùng DEFAULT_AGE_GROUP khi không có tuổi hoặc tuổi không hợp lệ.
+ */
 export function getAgeGroup(age: number | null | undefined): AgeGroup {
-  if (age == null || age < 0) return "all";
-  if (age <= 12) return "child";
-  if (age <= 17) return "teen";
-  if (age <= 40) return "adult";
-  return "elder";
+  if (age == null || age < 0) return DEFAULT_AGE_GROUP;
+  if (age <= 6) return "0_6";
+  if (age <= 12) return "6_12";
+  if (age <= 16) return "12_16";
+  if (age <= 18) return "16_18";
+  if (age <= 22) return "18_22";
+  if (age <= 30) return "22_30";
+  if (age <= 40) return "30_40";
+  return "40_plus";
 }

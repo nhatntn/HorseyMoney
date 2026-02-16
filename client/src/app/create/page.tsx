@@ -6,6 +6,12 @@ import { FallingPetals } from "@/components/FallingPetals";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
+// Mệnh giá nhanh: bội số 10k từ 10k tới 200k, cộng thêm 500k
+const QUICK_AMOUNTS = [
+  ...Array.from({ length: 20 }, (_, i) => 10 + i * 10), // 10, 20, ..., 200
+  500,
+];
+
 export default function CreateRoomPage() {
   const router = useRouter();
   const [roomName, setRoomName] = useState("");
@@ -25,6 +31,21 @@ export default function CreateRoomPage() {
     .filter((n) => !isNaN(n) && n > 0);
 
   const totalAmount = parsedAmounts.reduce((sum, n) => sum + n, 0);
+
+  const appendAmount = (amount: number) => {
+    const trimmed = amountsCsv.trim();
+    if (!trimmed) {
+      setAmountsCsv(String(amount));
+      return;
+    }
+    const hasTrailingComma = /,\s*$/.test(trimmed);
+    setAmountsCsv(hasTrailingComma ? `${trimmed}${amount}` : `${trimmed},${amount}`);
+  };
+
+  const removeAmountAt = (index: number) => {
+    const next = parsedAmounts.filter((_, i) => i !== index);
+    setAmountsCsv(next.join(","));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,21 +174,45 @@ export default function CreateRoomPage() {
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent font-mono text-sm"
             />
             {parsedAmounts.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
+              <div className="mt-2 flex flex-wrap gap-1.5 items-center">
                 {parsedAmounts.map((amount, i) => (
                   <span
-                    key={i}
-                    className="inline-block bg-amber-50 text-amber-700 text-xs font-medium px-2 py-1 rounded-lg border border-amber-200"
+                    key={`${i}-${amount}`}
+                    className="inline-flex items-center gap-0.5 bg-amber-50 text-amber-800 text-xs font-medium pl-2 pr-1 py-1 rounded-lg border border-amber-200"
                   >
                     {amount.toLocaleString()}k
+                    <button
+                      type="button"
+                      onClick={() => removeAmountAt(i)}
+                      className="ml-0.5 w-5 h-5 rounded-full hover:bg-amber-200/80 text-amber-600 hover:text-amber-800 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-0"
+                      aria-label="Xoá bao này"
+                    >
+                      ×
+                    </button>
                   </span>
                 ))}
+              </div>
+            )}
+            {parsedAmounts.length > 0 && (
+              <div className="mt-2">
                 <span className="inline-block bg-red-50 text-red-700 text-xs font-semibold px-2 py-1 rounded-lg border border-red-200">
-                  Tổng: {totalAmount.toLocaleString()}k VND •{" "}
-                  {parsedAmounts.length} bao
+                  Tổng: {totalAmount.toLocaleString()}k VND • {parsedAmounts.length} bao
                 </span>
               </div>
             )}
+            <p className="text-xs text-gray-500 mb-1.5 mt-2">Thêm nhanh — bấm để thêm 1 bao:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {QUICK_AMOUNTS.map((amount) => (
+                <button
+                  key={amount}
+                  type="button"
+                  onClick={() => appendAmount(amount)}
+                  className="min-w-[2.75rem] px-2.5 py-1.5 rounded-lg border-2 border-amber-200 bg-amber-50/80 hover:border-amber-400 hover:bg-amber-100 text-amber-800 text-sm font-medium transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1"
+                >
+                  {amount}k
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Race Duration */}
@@ -177,10 +222,10 @@ export default function CreateRoomPage() {
             </label>
             <div className="grid grid-cols-4 gap-2">
               {[
-                { value: "15", label: "15s", desc: "Nhanh" },
-                { value: "30", label: "30s", desc: "Bình thường" },
-                { value: "45", label: "45s", desc: "Dài" },
-                { value: "60", label: "60s", desc: "Marathon" },
+                { value: "15", label: "15s" },
+                { value: "30", label: "30s" },
+                { value: "45", label: "45s" },
+                { value: "60", label: "60s" },
               ].map((option) => (
                 <button
                   key={option.value}
@@ -192,10 +237,7 @@ export default function CreateRoomPage() {
                       : "border-gray-200 hover:border-red-300 text-gray-600"
                   }`}
                 >
-                  <div className="text-lg font-bold">{option.label}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">
-                    {option.desc}
-                  </div>
+                  <span className="text-lg font-bold">{option.label}</span>
                 </button>
               ))}
             </div>

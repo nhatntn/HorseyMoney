@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { getRoomState } from "../lib/roomState";
 import { raceManager } from "../lib/raceManager";
-import { getAgeGroup } from "../data/wishes";
+import { getAgeGroup, AGE_GROUP_ALL } from "../data/wishes";
 
 const BROADCAST_INTERVAL_MS = 80; // ~12 fps
 
@@ -58,7 +58,7 @@ async function assignAmountsByFinishOrder(
         const wishes = await tx.wish.findMany({
           where: {
             active: true,
-            OR: [{ ageGroup }, { ageGroup: "all" }],
+            OR: [{ ageGroup }, { ageGroup: AGE_GROUP_ALL }],
           },
         });
         const randomWish =
