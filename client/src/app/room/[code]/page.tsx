@@ -610,6 +610,7 @@ export default function RoomPage() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const askedMicRef = useRef(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(`tet_participant_${code}`);
@@ -678,6 +679,28 @@ export default function RoomPage() {
       socketRef.current = false;
     };
   }, [participantId, code]);
+
+  // Hỏi quyền microphone sớm khi vào phòng chơi bằng giọng nói (không đợi đến lúc start)
+  useEffect(() => {
+    if (showJoinModal || !roomState?.room || askedMicRef.current) return;
+    const raceMode = roomState.room.raceMode ?? "manual";
+    if (raceMode !== "voice") return;
+
+    askedMicRef.current = true;
+    let cancelled = false;
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        if (!cancelled) stream.getTracks().forEach((t) => t.stop());
+      })
+      .catch(() => {
+        // User từ chối hoặc lỗi — VoiceArea sẽ hiển thị micError khi đua
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showJoinModal, roomState]);
 
   useEffect(() => {
     if (roomState || !participantId) return;
