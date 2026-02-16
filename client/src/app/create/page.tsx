@@ -16,7 +16,7 @@ export default function CreateRoomPage() {
   const router = useRouter();
   const [roomName, setRoomName] = useState("");
   const [maxPeople, setMaxPeople] = useState("10");
-  const [amountsCsv, setAmountsCsv] = useState("50,50,100,100,200,200,500");
+  const [amountsCsv, setAmountsCsv] = useState("50,60,70,80,90,100,110,110,120,150");
   const [raceDuration, setRaceDuration] = useState("30");
   const [raceMode, setRaceMode] = useState<"manual" | "voice">("manual");
   const [creatorJoin, setCreatorJoin] = useState(true);
@@ -170,7 +170,7 @@ export default function CreateRoomPage() {
             <textarea
               value={amountsCsv}
               onChange={(e) => setAmountsCsv(e.target.value)}
-              placeholder="50,50,100,100,200,200,500"
+              placeholder="50,60,70,80,90,100,110,110,120,150"
               rows={2}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent font-mono text-sm"
             />
