@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSocket } from "@/lib/socket";
-import { getSoundEnabled, setSoundEnabled } from "@/lib/soundPref";
-import { playCountdownTing, playRaceGo } from "@/lib/raceSounds";
+import { getSoundEnabled } from "@/lib/soundPref";
+import { playCountdownTing, playRaceGo, playRaceComplete, playFireworks } from "@/lib/raceSounds";
 import { Horse } from "@/components/Horse";
 import { FallingPetals } from "@/components/FallingPetals";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const RACE_GOAL = 100;
-const RACE_BG_MUSIC_URL = "/sounds/race-bg.mp3";
 
 // ─── Types ────────────────────────────────────────────────────
 interface RoomState {
@@ -319,6 +318,84 @@ function RaceTrack({
   );
 }
 
+// ─── Hiệu ứng nổ pháo bông khi về đích 100% ───────────────────
+const FIREWORK_COLORS = ["#DC2626", "#F59E0B", "#FBBF24", "#EC4899", "#F97316"];
+function FireworksBurst({ show }: { show: boolean }) {
+  const particles = useMemo(() => {
+    if (!show) return [];
+    return Array.from({ length: 28 }, (_, i) => {
+      const angle = (i / 28) * 360 + Math.random() * 20;
+      const rad = (angle * Math.PI) / 180;
+      const dist = 70 + Math.random() * 120;
+      return {
+        tx: Math.cos(rad) * dist,
+        ty: Math.sin(rad) * dist,
+        color: FIREWORK_COLORS[i % FIREWORK_COLORS.length],
+        delay: Math.random() * 0.15,
+      };
+    });
+  }, [show]);
+  if (!show || particles.length === 0) return null;
+  return (
+    <div className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center">
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4">
+        {particles.map((p, i) => (
+          <div
+            key={i}
+            className="absolute w-2.5 h-2.5 rounded-full animate-firework-burst"
+            style={{
+              left: "50%",
+              top: "50%",
+              marginLeft: -5,
+              marginTop: -5,
+              backgroundColor: p.color,
+              boxShadow: `0 0 6px ${p.color}`,
+              ["--fw-tx" as string]: `${p.tx}px`,
+              ["--fw-ty" as string]: `${p.ty}px`,
+              animationDelay: `${p.delay}s`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Hiệu ứng cờ kết thúc khi hết vòng ─────────────────────────
+function FinishFlagOverlay({
+  show,
+  onDone,
+}: {
+  show: boolean;
+  onDone: () => void;
+}) {
+  const [out, setOut] = useState(false);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+  useEffect(() => {
+    if (!show) return;
+    setOut(false);
+    const t = setTimeout(() => {
+      setOut(true);
+      const t2 = setTimeout(() => onDoneRef.current(), 400);
+      return () => clearTimeout(t2);
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [show]);
+  if (!show) return null;
+  return (
+    <div
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm ${out ? "animate-finish-flag-out" : "animate-finish-flag-in"}`}
+    >
+      <div className="text-center">
+        <div className="text-8xl mb-4 drop-shadow-lg">🏁</div>
+        <p className="text-2xl font-black text-yellow-300 drop-shadow-md">KẾT THÚC VÒNG ĐUA</p>
+        <p className="text-yellow-200/90 text-lg mt-1">Chúc mừng mọi người!</p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tap Area ─────────────────────────────────────────────────
 function TapArea({
   onTap,
@@ -614,24 +691,15 @@ export default function RoomPage() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [showFireworks, setShowFireworks] = useState(false);
+  const [showFinishFlag, setShowFinishFlag] = useState(false);
   const askedMicRef = useRef(false);
-  const raceBgAudioRef = useRef<HTMLAudioElement | null>(null);
   const roomStateRef = useRef<RoomState | null>(null);
   const soundOnRef = useRef(true);
+  const prevMyFinishedRef = useRef(false);
+  const setShowFinishFlagRef = useRef<(v: boolean) => void>(() => {});
   roomStateRef.current = roomState ?? null;
-
-  const [soundOn, setSoundOnState] = useState(() => (typeof window !== "undefined" ? getSoundEnabled() : true));
-  soundOnRef.current = soundOn;
-
-  const toggleSound = useCallback(() => {
-    const next = !soundOn;
-    setSoundOnState(next);
-    setSoundEnabled(next);
-    if (!next && raceBgAudioRef.current) {
-      raceBgAudioRef.current.pause();
-      raceBgAudioRef.current.currentTime = 0;
-    }
-  }, [soundOn]);
+  setShowFinishFlagRef.current = setShowFinishFlag;
 
   useEffect(() => {
     const stored = localStorage.getItem(`tet_participant_${code}`);
@@ -650,6 +718,7 @@ export default function RoomPage() {
   useEffect(() => {
     if (!participantId || socketRef.current) return;
     socketRef.current = true;
+    soundOnRef.current = getSoundEnabled();
 
     const socket = getSocket();
     socket.connect();
@@ -677,20 +746,6 @@ export default function RoomPage() {
       setRaceState(data);
       setTimeout(() => setCountdown(null), 700);
       if (soundOnRef.current) playRaceGo();
-      // Nhạc nền chỉ phát khi bật sound và chơi tap to run (manual)
-      const raceMode = roomStateRef.current?.room?.raceMode ?? "manual";
-      if (soundOnRef.current && raceMode === "manual") {
-        try {
-          if (!raceBgAudioRef.current) {
-            raceBgAudioRef.current = new Audio(RACE_BG_MUSIC_URL);
-            raceBgAudioRef.current.loop = true;
-          }
-          raceBgAudioRef.current.currentTime = 0;
-          raceBgAudioRef.current.play().catch(() => {});
-        } catch {
-          // File không tồn tại hoặc trình duyệt chặn autoplay
-        }
-      }
     });
 
     socket.on("race:progress", (data: RaceState) => {
@@ -699,15 +754,8 @@ export default function RoomPage() {
 
     socket.on("race:complete", (data: RaceState) => {
       setRaceState(data);
-      // Dừng nhạc nền khi kết thúc đua
-      try {
-        if (raceBgAudioRef.current) {
-          raceBgAudioRef.current.pause();
-          raceBgAudioRef.current.currentTime = 0;
-        }
-      } catch {
-        // ignore
-      }
+      if (soundOnRef.current) playRaceComplete();
+      setShowFinishFlagRef.current(true);
     });
 
     socket.on("room:error", (data: { message: string }) => {
@@ -725,10 +773,6 @@ export default function RoomPage() {
       socket.off("room:error");
       socket.disconnect();
       socketRef.current = false;
-      if (raceBgAudioRef.current) {
-        raceBgAudioRef.current.pause();
-        raceBgAudioRef.current.currentTime = 0;
-      }
     };
   }, [participantId, code]);
 
@@ -906,6 +950,21 @@ export default function RoomPage() {
     roomState.availableCount > 0 &&
     withoutEnvelopeCount === 1;
 
+  // Pháo bông khi mình vừa về đích 100%
+  useEffect(() => {
+    if (!isInRace) {
+      prevMyFinishedRef.current = false;
+      return;
+    }
+    if (myFinished && !prevMyFinishedRef.current) {
+      prevMyFinishedRef.current = true;
+      if (soundOnRef.current) playFireworks();
+      setShowFireworks(true);
+      const t = setTimeout(() => setShowFireworks(false), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [isInRace, myFinished]);
+
   // Loading state
   if (initialLoading && !showJoinModal) {
     return (
@@ -934,26 +993,21 @@ export default function RoomPage() {
       {/* Countdown Overlay */}
       {countdown !== null && <CountdownOverlay count={countdown} />}
 
+      {/* Hiệu ứng nổ pháo bông khi về đích 100% */}
+      <FireworksBurst show={showFireworks} />
+
+      {/* Hiệu ứng cờ kết thúc khi hết vòng đua */}
+      <FinishFlagOverlay
+        show={showFinishFlag}
+        onDone={() => setShowFinishFlag(false)}
+      />
+
       {/* Back button — fixed top-left */}
       <button
         onClick={() => router.push("/")}
         className="fixed top-4 left-4 z-30 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-yellow-300 hover:text-yellow-200 text-sm font-medium px-4 py-2 rounded-xl border border-yellow-400/30 transition-all duration-200 shadow-lg shadow-black/10"
       >
         ← Về Trang Chủ
-      </button>
-
-      <button
-        type="button"
-        onClick={toggleSound}
-        className="fixed bottom-6 right-6 z-30 w-11 h-11 flex items-center justify-center rounded-xl border border-yellow-400/30 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-yellow-300 hover:text-yellow-200 transition-all duration-200 shadow-lg shadow-black/10"
-        title={soundOn ? "Tắt âm thanh" : "Bật âm thanh"}
-        aria-label={soundOn ? "Tắt âm thanh" : "Bật âm thanh"}
-      >
-        {soundOn ? (
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-        ) : (
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-        )}
       </button>
 
       <div className="max-w-lg mx-auto relative z-20">

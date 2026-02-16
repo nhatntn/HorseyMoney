@@ -209,3 +209,46 @@ body {
   65%  { transform: translateY(-1px) scale(0.95); }
   100% { transform: translateY(0) scale(1); }
 }
+
+/* ═══ Fireworks burst (nổ pháo bông) ═══ */
+@keyframes firework-burst {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 1;
+  }
+  60% { opacity: 1; }
+  100% {
+    transform: translate(var(--fw-tx, 0), var(--fw-ty, 0)) scale(1);
+    opacity: 0;
+  }
+}
+.animate-firework-burst {
+  animation: firework-burst 1s ease-out forwards;
+  pointer-events: none;
+}
+
+/* ═══ Finish flag overlay ═══ */
+@keyframes finish-flag-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes finish-flag-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.animate-finish-flag-in {
+  animation: finish-flag-in 0.5s ease-out forwards;
+}
+.animate-finish-flag-out {
+  animation: finish-flag-out 0.4s ease-out forwards;
+}
