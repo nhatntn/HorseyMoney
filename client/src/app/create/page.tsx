@@ -232,11 +232,10 @@ export default function CreateRoomPage() {
                   key={option.value}
                   type="button"
                   onClick={() => setRaceDuration(option.value)}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${
-                    raceDuration === option.value
-                      ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
-                      : "border-gray-200 hover:border-red-300 text-gray-600"
-                  }`}
+                  className={`p-3 rounded-xl border-2 text-center transition-all ${raceDuration === option.value
+                    ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                    : "border-gray-200 hover:border-red-300 text-gray-600"
+                    }`}
                 >
                   <span className="text-lg font-bold">{option.label}</span>
                 </button>
@@ -256,11 +255,10 @@ export default function CreateRoomPage() {
               <button
                 type="button"
                 onClick={() => setRaceMode("manual")}
-                className={`p-3 rounded-xl border-2 text-center transition-all ${
-                  raceMode === "manual"
-                    ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
-                    : "border-gray-200 hover:border-red-300 text-gray-600"
-                }`}
+                className={`p-3 rounded-xl border-2 text-center transition-all ${raceMode === "manual"
+                  ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                  : "border-gray-200 hover:border-red-300 text-gray-600"
+                  }`}
               >
                 <div className="text-sm font-medium">👆 Bằng tay</div>
                 <div className="text-xs text-gray-500 mt-0.5">Bấm liên tục để phi</div>
@@ -268,14 +266,13 @@ export default function CreateRoomPage() {
               <button
                 type="button"
                 onClick={() => setRaceMode("voice")}
-                className={`p-3 rounded-xl border-2 text-center transition-all ${
-                  raceMode === "voice"
-                    ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
-                    : "border-gray-200 hover:border-red-300 text-gray-600"
-                }`}
+                className={`p-3 rounded-xl border-2 text-center transition-all ${raceMode === "voice"
+                  ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                  : "border-gray-200 hover:border-red-300 text-gray-600"
+                  }`}
               >
                 <div className="text-sm font-medium">🎤 Bằng giọng nói</div>
-                <div className="text-xs text-gray-500 mt-0.5">La to vào mic để tăng tốc</div>
+                <div className="text-xs text-gray-500 mt-0.5">Híííííí to vào mic để tăng tốc</div>
               </button>
             </div>
           </div>
@@ -289,22 +286,20 @@ export default function CreateRoomPage() {
               <button
                 type="button"
                 onClick={() => setCreatorJoin(true)}
-                className={`p-3 rounded-xl border-2 text-center transition-all ${
-                  creatorJoin
-                    ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
-                    : "border-gray-200 hover:border-red-300 text-gray-600"
-                }`}
+                className={`p-3 rounded-xl border-2 text-center transition-all ${creatorJoin
+                  ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                  : "border-gray-200 hover:border-red-300 text-gray-600"
+                  }`}
               >
                 <div className="text-sm font-medium">🏇 Có, tôi đua luôn!</div>
               </button>
               <button
                 type="button"
                 onClick={() => setCreatorJoin(false)}
-                className={`p-3 rounded-xl border-2 text-center transition-all ${
-                  !creatorJoin
-                    ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
-                    : "border-gray-200 hover:border-red-300 text-gray-600"
-                }`}
+                className={`p-3 rounded-xl border-2 text-center transition-all ${!creatorJoin
+                  ? "border-red-500 bg-red-50 text-red-700 shadow-sm"
+                  : "border-gray-200 hover:border-red-300 text-gray-600"
+                  }`}
               >
                 <div className="text-sm font-medium">👀 Không, chỉ host</div>
               </button>
@@ -333,11 +328,10 @@ export default function CreateRoomPage() {
                       key={opt.value}
                       type="button"
                       onClick={() => setCreatorGender(opt.value)}
-                      className={`py-2 px-2 rounded-xl border-2 text-xs font-medium transition-all ${
-                        creatorGender === opt.value
-                          ? "border-red-500 bg-white text-red-700"
-                          : "border-gray-200 text-gray-500 hover:border-red-300"
-                      }`}
+                      className={`py-2 px-2 rounded-xl border-2 text-xs font-medium transition-all ${creatorGender === opt.value
+                        ? "border-red-500 bg-white text-red-700"
+                        : "border-gray-200 text-gray-500 hover:border-red-300"
+                        }`}
                     >
                       {opt.label}
                     </button>

@@ -596,7 +596,7 @@ function VoiceArea({
     <div className="h-44 rounded-2xl flex flex-col items-center justify-center select-none shadow-lg bg-gradient-to-b from-violet-600 to-violet-700 p-4">
       <div className="text-4xl mb-1">🎤</div>
       <div className="text-white text-lg font-black text-center">
-        LA TO VÀO MIC ĐỂ PHI NGỰA!
+        HÍÍÍÍÍÍ TO VÀO MIC ĐỂ PHI NGỰA!
       </div>
       <p className="text-white/80 text-xs mt-1 text-center">
         Càng to, càng dài hơi → ngựa chạy càng nhanh
@@ -697,7 +697,7 @@ export default function RoomPage() {
   const roomStateRef = useRef<RoomState | null>(null);
   const soundOnRef = useRef(true);
   const prevMyFinishedRef = useRef(false);
-  const setShowFinishFlagRef = useRef<(v: boolean) => void>(() => {});
+  const setShowFinishFlagRef = useRef<(v: boolean) => void>(() => { });
   roomStateRef.current = roomState ?? null;
   setShowFinishFlagRef.current = setShowFinishFlag;
 
@@ -818,6 +818,31 @@ export default function RoomPage() {
 
     return () => clearTimeout(timeout);
   }, [roomState, participantId, code]);
+
+  // Khi đã kết thúc vòng mà còn bao lì xì: polling để host thấy người vào sau / nút Start ngay (raceState có thể vẫn là "finished" nên không dùng !raceState)
+  const isViewingResultsWithRemaining =
+    !!roomState &&
+    !!participantId &&
+    roomState.envelopes.length > 0 &&
+    roomState.availableCount > 0 &&
+    (!raceState || raceState.status === "finished");
+  useEffect(() => {
+    if (!isViewingResultsWithRemaining || !code) return;
+    const poll = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/rooms/${code}`);
+        if (res.ok) {
+          const data = await res.json();
+          setRoomState(data);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    poll();
+    const interval = setInterval(poll, 2000);
+    return () => clearInterval(interval);
+  }, [isViewingResultsWithRemaining, code]);
 
   const handleJoin = useCallback(
     async (displayName: string, gender: string, age: string) => {
@@ -1111,7 +1136,7 @@ export default function RoomPage() {
                   </div>
                   <p className="text-gray-400 text-xs mb-4">
                     {(roomState.room.raceMode ?? "manual") === "voice"
-                      ? "La to vào mic để phi ngựa — càng to càng nhanh!"
+                      ? "Híííííííí to vào mic để phi ngựa — càng to càng nhanh!"
                       : "Bấm liên tục để phi ngựa — Về nhất lấy bao lì xì lớn nhất!"}
                   </p>
                   {canStartRace && (
