@@ -693,7 +693,11 @@ export default function RoomPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [showFireworks, setShowFireworks] = useState(false);
   const [showFinishFlag, setShowFinishFlag] = useState(false);
+  const [startRaceLoading, setStartRaceLoading] = useState(false);
+  const [micPermissionEarly, setMicPermissionEarly] = useState<"unknown" | "granted" | "denied">("unknown");
+  const [micRequesting, setMicRequesting] = useState(false);
   const askedMicRef = useRef(false);
+  const triedMicAutoRequestRef = useRef(false);
   const roomStateRef = useRef<RoomState | null>(null);
   const soundOnRef = useRef(true);
   const prevMyFinishedRef = useRef(false);
@@ -776,21 +780,24 @@ export default function RoomPage() {
     };
   }, [participantId, code]);
 
-  // Hỏi quyền microphone sớm khi vào phòng chơi bằng giọng nói (không đợi đến lúc start)
+  // Xin quyền microphone ngay khi vào trang (voice mode) — chỉ tự động thử một lần, kết quả lưu state để hiển thị banner
   useEffect(() => {
-    if (showJoinModal || !roomState?.room || askedMicRef.current) return;
+    if (showJoinModal || !roomState?.room || askedMicRef.current || triedMicAutoRequestRef.current) return;
     const raceMode = roomState.room.raceMode ?? "manual";
     if (raceMode !== "voice") return;
 
-    askedMicRef.current = true;
+    triedMicAutoRequestRef.current = true;
     let cancelled = false;
     navigator.mediaDevices
       .getUserMedia({ audio: true })
       .then((stream) => {
-        if (!cancelled) stream.getTracks().forEach((t) => t.stop());
+        if (cancelled) return;
+        stream.getTracks().forEach((t) => t.stop());
+        askedMicRef.current = true;
+        setMicPermissionEarly("granted");
       })
       .catch(() => {
-        // User từ chối hoặc lỗi — VoiceArea sẽ hiển thị micError khi đua
+        if (!cancelled) setMicPermissionEarly("denied");
       });
 
     return () => {
@@ -871,11 +878,25 @@ export default function RoomPage() {
     [code]
   );
 
-  const handleStartRace = useCallback(() => {
+  const handleStartRace = useCallback(async () => {
+    const isVoiceMode = (roomState?.room.raceMode ?? "manual") === "voice";
+    if (isVoiceMode) {
+      setError("");
+      setStartRaceLoading(true);
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((t) => t.stop());
+      } catch {
+        setError("Trò chơi giọng nói cần quyền microphone. Vui lòng cho phép microphone rồi bấm Bắt Đầu Đua lại.");
+        setStartRaceLoading(false);
+        return;
+      }
+      setStartRaceLoading(false);
+    }
     const socket = getSocket();
     const creatorId = localStorage.getItem(`creator_${code}`) || participantId;
     socket.emit("race:start", { roomCode: code, participantId: creatorId });
-  }, [code, participantId]);
+  }, [code, participantId, roomState?.room.raceMode]);
 
   const handleOpenEnvelope = useCallback(async () => {
     if (!participantId || openEnvelopeLoading) return;
@@ -922,6 +943,22 @@ export default function RoomPage() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleRequestMicPermission = useCallback(async () => {
+    setMicRequesting(true);
+    setError("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t) => t.stop());
+      askedMicRef.current = true;
+      setMicPermissionEarly("granted");
+    } catch {
+      setMicPermissionEarly("denied");
+      setError("Bạn đã từ chối microphone. Để chơi bằng giọng nói, hãy bật quyền trong cài đặt trình duyệt rồi tải lại trang.");
+    } finally {
+      setMicRequesting(false);
+    }
+  }, []);
 
   const hasResults = roomState && roomState.envelopes.length > 0;
   const isRacing =
@@ -1070,6 +1107,31 @@ export default function RoomPage() {
           </div>
         )}
 
+        {/* Voice mode: xin quyền microphone ngay khi vào trang */}
+        {roomState && (roomState.room.raceMode ?? "manual") === "voice" && (
+          <div className="mb-4">
+            {micPermissionEarly === "granted" ? (
+              <div className="bg-emerald-900/40 text-emerald-200 text-sm px-4 py-2.5 rounded-xl border border-emerald-500/30 text-center">
+                🎤 Đã cho phép microphone — sẵn sàng chơi bằng giọng nói
+              </div>
+            ) : (
+              <div className="bg-violet-900/50 text-violet-200 text-sm px-4 py-3 rounded-xl border border-violet-400/30 animate-fade-in">
+                <p className="mb-2">
+                  Chế độ giọng nói cần quyền microphone để phi ngựa. Vui lòng bấm nút bên dưới để cho phép ngay khi vào trang.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleRequestMicPermission}
+                  disabled={micRequesting}
+                  className="bg-violet-600 hover:bg-violet-500 disabled:opacity-70 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  {micRequesting ? "Đang yêu cầu..." : "🎤 Cho phép microphone"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {roomState && (
           <>
             {/* ─── LOBBY (waiting for race) ─── */}
@@ -1139,12 +1201,18 @@ export default function RoomPage() {
                       ? "Híííííííí to vào mic để phi ngựa — càng to càng nhanh!"
                       : "Bấm liên tục để phi ngựa — Về nhất lấy bao lì xì lớn nhất!"}
                   </p>
+                  {(roomState.room.raceMode ?? "manual") === "voice" && canStartRace && (
+                    <p className="text-amber-600 text-xs mb-2">
+                      🎤 Trò chơi giọng nói cần quyền microphone — bấm Bắt Đầu sẽ kiểm tra mic trước khi đua.
+                    </p>
+                  )}
                   {canStartRace && (
                     <button
                       onClick={handleStartRace}
-                      className="bg-gradient-to-r from-red-700 to-amber-500 hover:from-red-800 hover:to-amber-600 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 shadow-lg shadow-red-900/30 hover:shadow-xl active:scale-[0.97]"
+                      disabled={startRaceLoading}
+                      className="bg-gradient-to-r from-red-700 to-amber-500 hover:from-red-800 hover:to-amber-600 disabled:opacity-70 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-200 shadow-lg shadow-red-900/30 hover:shadow-xl active:scale-[0.97]"
                     >
-                      Bắt Đầu Đua! 🏁
+                      {startRaceLoading ? "Đang kiểm tra mic..." : "Bắt Đầu Đua! 🏁"}
                     </button>
                   )}
                   {notEnoughPlayers && isCreator && (
